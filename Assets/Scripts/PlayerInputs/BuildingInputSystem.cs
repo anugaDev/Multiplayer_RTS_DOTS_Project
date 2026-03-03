@@ -305,15 +305,67 @@ namespace PlayerInputs
             EndBuilding();
         }
 
+        private void CommandSelectedWorkers()
+        {
+            const float stoppingDistance = 1.6f;
+
+            BoxCollider buildingCollider = _currentBuildingTemplate.GameObject.GetComponent<BoxCollider>();
+            Unity.Mathematics.float3 halfExtents = buildingCollider != null
+                ? (Unity.Mathematics.float3)(buildingCollider.size * 0.5f)
+                : new Unity.Mathematics.float3(1f, 1f, 1f);
+
+            foreach ((RefRO<OwnerTagComponent> _, UnitTypeComponent unitType, Entity entity) in
+                     SystemAPI.Query<RefRO<OwnerTagComponent>, UnitTypeComponent>().WithEntityAccess())
+            {
+                if (unitType.Type != UnitType.Worker)
+                    continue;
+
+                ElementSelectionComponent selection = EntityManager.GetComponentData<ElementSelectionComponent>(entity);
+                if (!selection.IsSelected)
+                    continue;
+
+                // Ray from building center toward the worker's current world position (XZ only)
+                Unity.Mathematics.float3 workerPos     = EntityManager.GetComponentData<Unity.Transforms.LocalTransform>(entity).Position;
+                Unity.Mathematics.float3 buildingCenter = _lastPosition;
+
+                Unity.Mathematics.float3 dir = new Unity.Mathematics.float3(
+                    workerPos.x - buildingCenter.x, 0f, workerPos.z - buildingCenter.z);
+
+                // If worker is right at center, use a default outward direction
+                if (Unity.Mathematics.math.lengthsq(dir) < 0.001f)
+                    dir = new Unity.Mathematics.float3(1f, 0f, 0f);
+
+                dir = Unity.Mathematics.math.normalize(dir);
+
+                // Slab method: find where the ray exits the AABB on XZ plane
+                float tx = dir.x != 0f ? Unity.Mathematics.math.abs(halfExtents.x / dir.x) : float.MaxValue;
+                float tz = dir.z != 0f ? Unity.Mathematics.math.abs(halfExtents.z / dir.z) : float.MaxValue;
+                float t  = Unity.Mathematics.math.min(tx, tz);
+
+                // Boundary exit point + small separation so path ends outside the obstacle
+                Unity.Mathematics.float3 boundaryTarget = buildingCenter + dir * (t + 0.5f);
+                boundaryTarget.y = workerPos.y;
+
+                int currentVersion = EntityManager.GetComponentData<Units.Worker.SetInputStateTargetComponent>(entity).TargetVersion;
+
+                Units.Worker.SetInputStateTargetComponent inputTarget = new Units.Worker.SetInputStateTargetComponent
+                {
+                    TargetEntity      = Entity.Null,
+                    TargetPosition    = boundaryTarget,   // boundary edge, NOT center
+                    IsFollowingTarget = true,             // WorkerActionSystem triggers construction on arrival
+                    StoppingDistance  = stoppingDistance,
+                    HasNewTarget      = true,
+                    TargetVersion     = currentVersion + 1
+                };
+
+                EntityManager.SetComponentData(entity, inputTarget);
+            }
+        }
+
         private void SetUpdatedCosts()
         {
-            // NOTE: Resource deduction is now handled on the server in PlaceBuildingCommandServerSystem
-            // We only update the local policy for UI validation purposes
             _buildingConfiguration[_currentBuildingType].ConstructionCost
                 .ForEach(_elementResourceCostPolicy.AddCost);
-
-            // The server will update the actual resource components and trigger UpdateResourcesPanelTag
-            // No need to modify components here - they are GhostFields and server is authoritative
         }
 
         private bool IsBuildingPlacingAvailable()
@@ -339,35 +391,7 @@ namespace PlayerInputs
             };
         }
 
-        private void CommandSelectedWorkers()
-        {
-            float stoppingDistance = 1.6f;
 
-            foreach ((RefRO<OwnerTagComponent> _, UnitTypeComponent unitType, Entity entity) in
-                     SystemAPI.Query<RefRO<OwnerTagComponent>, UnitTypeComponent>().WithEntityAccess())
-            {
-                if (unitType.Type != UnitType.Worker)
-                    continue;
-
-                ElementSelectionComponent selection = EntityManager.GetComponentData<ElementSelectionComponent>(entity);
-                if (!selection.IsSelected)
-                    continue;
-
-                int currentVersion = EntityManager.GetComponentData<SetInputStateTargetComponent>(entity).TargetVersion;
-
-                SetInputStateTargetComponent inputTarget = new SetInputStateTargetComponent
-                {
-                    TargetEntity = Entity.Null,
-                    TargetPosition = _lastPosition,
-                    IsFollowingTarget = true,
-                    StoppingDistance = stoppingDistance,
-                    HasNewTarget = true,
-                    TargetVersion = currentVersion + 1
-                };
-
-                EntityManager.SetComponentData(entity, inputTarget);
-            }
-        }
 
         private void EndBuilding()
         {

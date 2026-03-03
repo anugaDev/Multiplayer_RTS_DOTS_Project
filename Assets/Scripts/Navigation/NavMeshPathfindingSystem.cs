@@ -57,9 +57,6 @@ namespace Navigation
         {
             if (!inputTarget.ValueRO.HasNewTarget)
             {
-                // Clear stale waypoints after client arrives.
-                // ServerUnitMoveSystem has a fallback to finish walking to
-                // LastTargetPosition if waypoints drop to 0 mid-walk.
                 if (!pathComponent.ValueRO.HasPath && waypointsInput.ValueRO.WaypointCount > 0)
                     waypointsInput.ValueRW.WaypointCount = 0;
                 return;
@@ -88,7 +85,11 @@ namespace Navigation
                 if (math.lengthsq(lastTarget) > 0.01f)
                 {
                     float distanceToLastTarget = math.distance(targetPosition, lastTarget);
-                    if (distanceToLastTarget < NAVMESH_PRECISION_THRESHOLD)
+                    
+                    bool targetEntityChanged = inputTarget.ValueRO.IsFollowingTarget && 
+                                             inputTarget.ValueRO.TargetEntity != pathComponent.ValueRO.LastTargetEntity;
+
+                    if (distanceToLastTarget < NAVMESH_PRECISION_THRESHOLD && !targetEntityChanged)
                         return;
                 }
             }
@@ -110,9 +111,33 @@ namespace Navigation
             Vector3 startPos = transform.ValueRO.Position;
             Vector3 endPos = targetPosition;
 
-            // Sample the NavMesh to find the closest valid point to the target
-            // This ensures workers target the edge of a building rather than its center
-            if (NavMesh.SamplePosition(targetPosition, out NavMeshHit hit, 20.0f, _walkableAreaMask))
+            if (inputTarget.ValueRO.TargetEntity != Entity.Null && EntityManager.Exists(inputTarget.ValueRO.TargetEntity))
+            {
+                if (EntityManager.HasComponent<Buildings.BuildingObstacleSizeComponent>(inputTarget.ValueRO.TargetEntity) &&
+                    EntityManager.HasComponent<LocalTransform>(inputTarget.ValueRO.TargetEntity))
+                {
+                    var buildingTransform = EntityManager.GetComponentData<LocalTransform>(inputTarget.ValueRO.TargetEntity);
+                    var buildingSize = EntityManager.GetComponentData<Buildings.BuildingObstacleSizeComponent>(inputTarget.ValueRO.TargetEntity).Size;
+
+                    float3 buildingCenter = buildingTransform.Position;
+                    float3 halfExtents    = buildingSize * 0.5f;
+
+                    float3 dir = new float3(startPos.x - buildingCenter.x, 0f, startPos.z - buildingCenter.z);
+
+                    if (math.lengthsq(dir) < 0.001f)
+                        dir = new float3(1f, 0f, 0f);
+
+                    dir = math.normalize(dir);
+                    float tx = dir.x != 0f ? math.abs(halfExtents.x / dir.x) : float.MaxValue;
+                    float tz = dir.z != 0f ? math.abs(halfExtents.z / dir.z) : float.MaxValue;
+                    float t  = math.min(tx, tz);
+
+                    endPos = (Vector3)(buildingCenter + dir * (t + 0.5f));
+                    endPos.y = startPos.y;
+                }
+            }
+
+            if (NavMesh.SamplePosition(endPos, out NavMeshHit hit, 20.0f, _walkableAreaMask))
             {
                 endPos = hit.position;
             }
@@ -148,6 +173,7 @@ namespace Navigation
             pathComponent.ValueRW.HasPath = true;
             pathComponent.ValueRW.CurrentWaypointIndex = 0;
             pathComponent.ValueRW.LastTargetPosition = targetPosition;
+            pathComponent.ValueRW.LastTargetEntity = inputTarget.ValueRO.TargetEntity;
             WriteWaypointsInput(waypointsInput, pathBuffer);
             inputTarget.ValueRW.HasNewTarget = false;
         }
@@ -163,6 +189,7 @@ namespace Navigation
             pathComponent.ValueRW.HasPath = true;
             pathComponent.ValueRW.CurrentWaypointIndex = 0;
             pathComponent.ValueRW.LastTargetPosition = targetPosition;
+            pathComponent.ValueRW.LastTargetEntity = inputTarget.ValueRO.TargetEntity;
             WriteWaypointsInput(waypointsInput, pathBuffer);
             inputTarget.ValueRW.HasNewTarget = false;
         }
@@ -184,6 +211,7 @@ namespace Navigation
             pathComponent.ValueRW.HasPath = true;
             pathComponent.ValueRW.CurrentWaypointIndex = 0;
             pathComponent.ValueRW.LastTargetPosition = targetPosition;
+            pathComponent.ValueRW.LastTargetEntity = inputTarget.ValueRO.TargetEntity;
 
             WriteWaypointsInput(waypointsInput, pathBuffer);
 

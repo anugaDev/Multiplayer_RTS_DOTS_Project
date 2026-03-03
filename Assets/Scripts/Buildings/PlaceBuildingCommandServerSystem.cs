@@ -62,8 +62,44 @@ namespace Buildings
                 ProcessBuildingCommands(buildingCommands, serverTick, lastProcessedCommand, playerTeam.Team, ghostOwner.NetworkId, playerEntity);
             }
 
+            ProcessDelayedWorkerCommands();
+
             _entityCommandBuffer.Playback(EntityManager);
             _entityCommandBuffer.Dispose();
+        }
+
+        private void ProcessDelayedWorkerCommands()
+        {
+            float stoppingDistance = 1.6f;
+
+            foreach ((RefRW<DelayWorkerToBuildingCommandComponent> delay, Entity entity) in 
+                     SystemAPI.Query<RefRW<DelayWorkerToBuildingCommandComponent>>().WithEntityAccess())
+            {
+                delay.ValueRW.FramesToWait--;
+
+                if (delay.ValueRO.FramesToWait > 0)
+                    continue;
+
+                if (EntityManager.Exists(delay.ValueRO.WorkerEntity) && EntityManager.Exists(delay.ValueRO.BuildingEntity))
+                {
+                    int currentVersion = EntityManager.GetComponentData<Units.Worker.SetServerStateTargetComponent>(delay.ValueRO.WorkerEntity).TargetVersion;
+                    int inputVersion = EntityManager.GetComponentData<Units.Worker.SetInputStateTargetComponent>(delay.ValueRO.WorkerEntity).TargetVersion;
+                    int maxVersion = math.max(currentVersion, inputVersion);
+
+                    Units.Worker.SetServerStateTargetComponent serverTarget = new Units.Worker.SetServerStateTargetComponent
+                    {
+                        TargetEntity = delay.ValueRO.BuildingEntity,
+                        TargetPosition = delay.ValueRO.TargetPosition,
+                        IsFollowingTarget = true,
+                        StoppingDistance = stoppingDistance,
+                        TargetVersion = maxVersion + 1
+                    };
+
+                    _entityCommandBuffer.SetComponent(delay.ValueRO.WorkerEntity, serverTarget);
+                }
+
+                _entityCommandBuffer.DestroyEntity(entity);
+            }
         }
 
         private void ProcessBuildingCommands(DynamicBuffer<PlaceBuildingCommand> buildingCommands,
@@ -115,6 +151,61 @@ namespace Buildings
             _entityCommandBuffer.SetComponent(newBuilding, newTransform);
             _entityCommandBuffer.SetComponent(newBuilding, new GhostOwner{NetworkId = networkId});
             _entityCommandBuffer.SetComponent(newBuilding, new ElementTeamComponent{Team = playerTeam});
+            
+            CommandSelectedWorkers(buildingEntity, newBuilding, placeBuildingCommand.Position, playerTeam);
+        }
+
+        private void CommandSelectedWorkers(Entity buildingPrefab, Entity newBuilding, float3 targetPosition, TeamType playerTeam)
+        {
+            float stoppingDistance = 1.0f; // Since TargetPosition is already the edge, we only need a marginal stop distance.
+
+            float3 buildingSize = new float3(1, 1, 1);
+            if (EntityManager.HasComponent<BuildingObstacleSizeComponent>(buildingPrefab))
+            {
+                buildingSize = EntityManager.GetComponentData<BuildingObstacleSizeComponent>(buildingPrefab).Size;
+            }
+
+            foreach ((RefRO<ElementTeamComponent> team, Units.UnitTypeComponent unitType, RefRO<Units.Worker.SetInputStateTargetComponent> inputTarget, RefRO<LocalTransform> transform, Entity entity) in
+                     SystemAPI.Query<RefRO<ElementTeamComponent>, Units.UnitTypeComponent, RefRO<Units.Worker.SetInputStateTargetComponent>, RefRO<LocalTransform>>().WithEntityAccess())
+            {
+                if (team.ValueRO.Team != playerTeam)
+                    continue;
+
+                if (unitType.Type != Types.UnitType.Worker)
+                    continue;
+
+                if (!inputTarget.ValueRO.IsFollowingTarget || inputTarget.ValueRO.TargetEntity != Entity.Null)
+                    continue;
+                if (math.distancesq(inputTarget.ValueRO.TargetPosition, targetPosition) > 0.1f)
+                    continue;
+
+                int currentVersion = EntityManager.GetComponentData<Units.Worker.SetServerStateTargetComponent>(entity).TargetVersion;
+
+                float3 workerPos = transform.ValueRO.Position;
+                float3 halfExtents = buildingSize * 0.5f;
+                float3 dir = new float3(workerPos.x - targetPosition.x, 0f, workerPos.z - targetPosition.z);
+
+                if (math.lengthsq(dir) < 0.001f)
+                    dir = new float3(1f, 0f, 0f);
+
+                dir = math.normalize(dir);
+                float tx = dir.x != 0f ? math.abs(halfExtents.x / dir.x) : float.MaxValue;
+                float tz = dir.z != 0f ? math.abs(halfExtents.z / dir.z) : float.MaxValue;
+                float t = math.min(tx, tz);
+
+                float3 clampedTarget = targetPosition + dir * (t + 0.5f);
+                clampedTarget.y = workerPos.y;
+
+                Entity delayEntity = _entityCommandBuffer.CreateEntity();
+                _entityCommandBuffer.AddComponent(delayEntity, new DelayWorkerToBuildingCommandComponent
+                {
+                    WorkerEntity = entity,
+                    BuildingEntity = newBuilding,
+                    TargetPosition = clampedTarget,
+                    PlayerTeam = playerTeam,
+                    FramesToWait = 5
+                });
+            }
         }
 
         private void InitializeFactory()

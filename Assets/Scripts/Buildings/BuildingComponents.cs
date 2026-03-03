@@ -14,8 +14,10 @@ namespace Buildings
     {
     }
 
+    [GhostComponent(PrefabType = GhostPrefabType.AllPredicted)]
     public struct BuildingObstacleSizeComponent : IComponentData
     {
+        [GhostField]
         public float3 Size;
     }
     
@@ -103,5 +105,14 @@ namespace Buildings
 
         [GhostField] 
         public float Value;
+    }
+
+    public struct DelayWorkerToBuildingCommandComponent : IComponentData
+    {
+        public Entity WorkerEntity;
+        public Entity BuildingEntity;
+        public float3 TargetPosition;
+        public TeamType PlayerTeam;
+        public int FramesToWait;
     }
 }

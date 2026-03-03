@@ -46,6 +46,7 @@ namespace Units
     public struct PathComponent : IComponentData
     {
         public float3 LastTargetPosition;
+        public Entity LastTargetEntity;
         public int CurrentWaypointIndex;
         public bool HasPath;
     }
