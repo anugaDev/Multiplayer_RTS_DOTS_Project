@@ -26,6 +26,18 @@ namespace Combat
             BeginSimulationEntityCommandBufferSystem.Singleton ecbSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
             EntityCommandBuffer entityCommandBuffer = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
 
+            foreach ((RefRO<CurrentHitPointsComponent> hp, Entity entity) in SystemAPI
+                         .Query<RefRO<CurrentHitPointsComponent>>()
+                         .WithAll<Simulate>()
+                         .WithNone<DestroyEntityTag>()
+                         .WithEntityAccess())
+            {
+                if (hp.ValueRO.Value <= 0)
+                {
+                    entityCommandBuffer.AddComponent<DestroyEntityTag>(entity);
+                }
+            }
+
             foreach ((RefRW<LocalTransform> transform, Entity entity) in SystemAPI.Query<RefRW<LocalTransform>>()
                          .WithAll<DestroyEntityTag, Simulate>().WithEntityAccess())
             {

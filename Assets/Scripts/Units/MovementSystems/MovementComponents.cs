@@ -19,6 +19,8 @@ namespace Units.MovementSystems
         public float3 FirePointOffset;
 
         public uint CooldownTickCount;
+
+        public int Damage;
     }
 
     public struct UnitAttackCooldown : ICommandData

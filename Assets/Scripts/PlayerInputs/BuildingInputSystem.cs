@@ -391,8 +391,6 @@ namespace PlayerInputs
             };
         }
 
-
-
         private void EndBuilding()
         {
             _isBuilding = false;

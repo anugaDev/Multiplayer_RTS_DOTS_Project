@@ -76,7 +76,6 @@ namespace Server
 
         private float3 GetEnemyBasePosition(TeamType enemyTeam)
         {
-            // Keep original positions from ServerProcessGameEntryRequestSystem
             if (enemyTeam == TeamType.Red)
             {
                 return new float3(50f, GlobalParameters.DEFAULT_SCENE_HEIGHT, 50f);
@@ -89,24 +88,18 @@ namespace Server
 
         private void SpawnEnemyBase(float3 basePosition, TeamType team, ref SystemState state)
         {
-            // Direction multiplier: Red team = 1, Blue team = -1
             float direction = team == TeamType.Red ? 1f : -1f;
-
-            // Spawn Town Center at base position
             SpawnBuilding(BuildingType.Center, basePosition, team, ref state);
 
-            // Spawn Barracks (toward center, spread out)
             float3 barracksPos = basePosition + new float3(-8f * direction, 0f, 0f);
             SpawnBuilding(BuildingType.Barracks, barracksPos, team, ref state);
 
-            // Spawn 2 Houses (toward center, more spread)
             float3 house1Pos = basePosition + new float3(-10f * direction, 0f, 12f * direction);
             SpawnBuilding(BuildingType.House, house1Pos, team, ref state);
 
             float3 house2Pos = basePosition + new float3(-10f * direction, 0f, -12f * direction);
             SpawnBuilding(BuildingType.House, house2Pos, team, ref state);
 
-            // Spawn 2 Farms (toward center, more spread)
             float3 farm1Pos = basePosition + new float3(-6f * direction, 0f, -10f * direction);
             SpawnBuilding(BuildingType.Farm, farm1Pos, team, ref state);
 
@@ -116,17 +109,14 @@ namespace Server
 
         private void SpawnEnemyUnits(float3 basePosition, TeamType team, ref SystemState state)
         {
-            // Direction multiplier: Red team = 1, Blue team = -1
             float direction = team == TeamType.Red ? 1f : -1f;
 
-            // Spawn 3 Warriors (closer to center)
             for (int i = 0; i < 3; i++)
             {
                 float3 warriorPos = basePosition + new float3(-20f * direction, 0f, (-3f + i * 3f) * direction);
                 SpawnUnit(UnitType.Warrior, warriorPos, team, ref state);
             }
 
-            // Spawn 2 Workers (between center and warriors)
             for (int i = 0; i < 2; i++)
             {
                 float3 workerPos = basePosition + new float3(-15f * direction, 0f, (-2f + i * 4f) * direction);
@@ -148,6 +138,7 @@ namespace Server
             _entityCommandBuffer.SetComponent(newBuilding, newTransform);
             _entityCommandBuffer.SetComponent(newBuilding, new GhostOwner { NetworkId = TEST_NETWORK_ID });
             _entityCommandBuffer.SetComponent(newBuilding, new ElementTeamComponent { Team = team });
+            SetFullConstructionProgressComponent(buildingPrefab, newBuilding, ref state);
         }
 
 
@@ -166,6 +157,16 @@ namespace Server
             _entityCommandBuffer.SetComponent(newUnit, newTransform);
             _entityCommandBuffer.SetComponent(newUnit, new GhostOwner { NetworkId = TEST_NETWORK_ID });
             _entityCommandBuffer.SetComponent(newUnit, new ElementTeamComponent { Team = team });
+        }
+
+        private void SetFullConstructionProgressComponent(Entity prefabEntity, Entity newBuilding, ref SystemState state)
+        {
+            if (!state.EntityManager.HasComponent<Buildings.BuildingConstructionProgressComponent>(prefabEntity))
+                return;
+
+            var progress = state.EntityManager.GetComponentData<Buildings.BuildingConstructionProgressComponent>(prefabEntity);
+            progress.Value = progress.ConstructionTime;
+            _entityCommandBuffer.SetComponent(newBuilding, progress);
         }
     }
 }

@@ -65,7 +65,7 @@ namespace Server
             _entityCommandBuffer.AddComponent(player, GetLastProcessedBuildingCommand());
             _entityCommandBuffer.AddComponent(player, GetLastProcessedUnitCommand());
             _entityCommandBuffer.AddComponent(player, GetLastProcessedQueueCommand());
-            //_entityCommandBuffer.AddComponent(player, GetTestEnemyTeamComponent(teamRequest.Team));
+            _entityCommandBuffer.AddComponent(player, GetTestEnemyTeamComponent(teamRequest.Team));
             DynamicBuffer<SpawnUnitCommand> spawnUnitCommands = _entityCommandBuffer.AddBuffer<SpawnUnitCommand>(player);
             spawnUnitCommands.AddCommandData(GetSpawnUnitCommand(townCenterPosition, serverTick));
             _entityCommandBuffer.AddBuffer<QueueUnitCommand>(player);
@@ -136,14 +136,9 @@ namespace Server
             _entityCommandBuffer.SetComponent(newBuilding, newTransform);
             _entityCommandBuffer.SetComponent(newBuilding, new GhostOwner{NetworkId = networkId});
             _entityCommandBuffer.SetComponent(newBuilding, new ElementTeamComponent{Team = team});
-
-            // Mark as finished by setting Value = ConstructionTime (component removal doesn't replicate)
-            if (state.EntityManager.HasComponent<Buildings.BuildingConstructionProgressComponent>(townCenterPrefab))
-            {
-                var progress = state.EntityManager.GetComponentData<Buildings.BuildingConstructionProgressComponent>(townCenterPrefab);
-                progress.Value = progress.ConstructionTime;
-                _entityCommandBuffer.SetComponent(newBuilding, progress);
-            }
+            var progress = state.EntityManager.GetComponentData<Buildings.BuildingConstructionProgressComponent>(townCenterPrefab);
+            progress.Value = progress.ConstructionTime;
+            _entityCommandBuffer.SetComponent(newBuilding, progress);
 
             return buildingPosition;
         }

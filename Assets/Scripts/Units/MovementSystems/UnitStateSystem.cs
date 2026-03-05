@@ -1,4 +1,5 @@
 using Units.Worker;
+using Combat;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.NetCode;
@@ -37,7 +38,8 @@ namespace Units.MovementSystems
                 bool hasWorkerTag =
                     SystemAPI.HasComponent<WorkerGatheringTagComponent>(entity)  ||
                     SystemAPI.HasComponent<WorkerStoringTagComponent>(entity)     ||
-                    SystemAPI.HasComponent<WorkerConstructionTagComponent>(entity);
+                    SystemAPI.HasComponent<WorkerConstructionTagComponent>(entity) ||
+                    SystemAPI.HasComponent<UnitAttackingTagComponent>(entity);
 
                 unitState.ValueRW.State = hasWorkerTag ? UnitState.Acting : UnitState.Idle;
             }

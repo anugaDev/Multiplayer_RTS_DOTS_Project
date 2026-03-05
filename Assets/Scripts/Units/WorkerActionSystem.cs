@@ -1,5 +1,6 @@
 using ElementCommons;
 using Buildings;
+using Combat;
 using GatherableResources;
 using Types;
 using Unity.Collections;
@@ -22,10 +23,16 @@ namespace Units
 
         private ComponentLookup<BuildingConstructionProgressComponent> _constructionProgressLookup;
 
+        private ComponentLookup<CurrentHitPointsComponent> _hpLookup;
+
+        private ComponentLookup<ElementTeamComponent> _teamLookup;
+
         protected override void OnCreate()
         {
             _resourceTypeLookup = GetComponentLookup<ResourceTypeComponent>(true);
             _constructionProgressLookup = GetComponentLookup<BuildingConstructionProgressComponent>(true);
+            _hpLookup   = GetComponentLookup<CurrentHitPointsComponent>(true);
+            _teamLookup = GetComponentLookup<ElementTeamComponent>(true);
             RequireForUpdate<UnitTagComponent>();
         }
 
@@ -34,6 +41,8 @@ namespace Units
 
             _resourceTypeLookup.Update(this);
             _constructionProgressLookup.Update(this);
+            _hpLookup.Update(this);
+            _teamLookup.Update(this);
 
             EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
@@ -133,7 +142,6 @@ namespace Units
                         BuildingEntity = targetEntity
                     });
 
-                    // Target the boundary of the building instead of the exact center
                     if (EntityManager.HasComponent<BuildingObstacleSizeComponent>(targetEntity))
                     {
                         inputTarget.ValueRW.StoppingDistance = 1.6f;
@@ -146,6 +154,14 @@ namespace Units
 
                 if (!_resourceTypeLookup.HasComponent(targetEntity))
                 {
+                    if (_hpLookup.HasComponent(targetEntity) &&
+                        _teamLookup.TryGetComponent(targetEntity, out ElementTeamComponent targetTeam) &&
+                        _teamLookup.TryGetComponent(entity, out ElementTeamComponent unitTeam) &&
+                        targetTeam.Team != unitTeam.Team)
+                    {
+                        continue;
+                    }
+
                     inputTarget.ValueRW.TargetEntity = Entity.Null;
                     inputTarget.ValueRW.IsFollowingTarget = false;
                     continue;

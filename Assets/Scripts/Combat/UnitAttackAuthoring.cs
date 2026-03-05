@@ -17,6 +17,9 @@ namespace Combat
         private float _attackCooldownTime;
 
         [SerializeField]
+        private int _attackDamage;
+
+        [SerializeField]
         private NetCodeConfig _netCodeConfig;
         
         public int SimulationTickRate => _netCodeConfig.ClientServerTickRate.SimulationTickRate;
@@ -28,6 +31,8 @@ namespace Combat
 
         public float AttackCooldownTime => _attackCooldownTime;
 
+        public int AttackDamage => _attackDamage;
+
         public class UnitAttackBaker : Baker<UnitAttackAuthoring>
         {
             public override void Bake(UnitAttackAuthoring authoring)
@@ -38,6 +43,7 @@ namespace Combat
                 {
                     FirePointOffset = authoring.FirePointOffset,
                     CooldownTickCount = (uint)(authoring.AttackCooldownTime * authoring.SimulationTickRate),
+                    Damage = authoring.AttackDamage,
                 });
                 AddComponent<UnitTargetEntity>(entity);
                 AddBuffer<UnitAttackCooldown>(entity);
