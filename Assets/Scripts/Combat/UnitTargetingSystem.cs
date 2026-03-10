@@ -1,4 +1,4 @@
-﻿using ElementCommons;
+using ElementCommons;
 using Units.MovementSystems;
 using Unity.Burst;
 using Unity.Collections;
@@ -50,16 +50,16 @@ namespace Combat
         private void Execute(Entity UnitEntity, ref UnitTargetEntity targetEntity, in LocalTransform transform,
             in UnitTargetRadius targetRadius)
         {
-            var hits = new NativeList<DistanceHit>(Allocator.TempJob);
+            NativeList<DistanceHit> hits = new NativeList<DistanceHit>(Allocator.TempJob);
 
             if (CollisionWorld.OverlapSphere(transform.Position, targetRadius.Value, ref hits, CollisionFilter))
             {
-                var closestDistance = float.MaxValue;
-                var closestEntity = Entity.Null;
+                float closestDistance = float.MaxValue;
+                Entity closestEntity  = Entity.Null;
 
-                foreach (var hit in hits)
+                foreach (DistanceHit hit in hits)
                 {
-                    if(!MobaTeamLookup.TryGetComponent(hit.Entity, out var mobaTeam)) continue;
+                    if (!MobaTeamLookup.TryGetComponent(hit.Entity, out ElementTeamComponent mobaTeam)) continue;
                     if(mobaTeam.Team == MobaTeamLookup[UnitEntity].Team) continue;
                     if (hit.Distance < closestDistance)
                     {

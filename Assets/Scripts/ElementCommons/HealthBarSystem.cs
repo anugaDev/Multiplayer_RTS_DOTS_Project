@@ -1,4 +1,4 @@
-﻿using Combat;
+using Combat;
 using ElementCommons;
 using GatherableResources;
 using Types;
@@ -56,7 +56,17 @@ namespace UI
                     continue;
                 }
 
-                EnableHealthBar(elementSelectionComponent, healthBar);
+                EnableUI(elementSelectionComponent, healthBar);
+            }
+
+            foreach ((CurrentHitPointsComponent currentHitPoints, MaxHitPointsComponent maxHitPoints,
+                         HealthBarUIReferenceComponent healthBarUI) in SystemAPI
+                         .Query<CurrentHitPointsComponent, MaxHitPointsComponent, HealthBarUIReferenceComponent>())
+            {
+                if (currentHitPoints.Value < maxHitPoints.Value)
+                {
+                    healthBarUI.Value.EnableHealthBar();
+                }
             }
 
             foreach ((HealthBarUIReferenceComponent healthBarUI, Entity entity) in SystemAPI
@@ -116,7 +126,7 @@ namespace UI
             }
         }
 
-        private void EnableHealthBar(ElementSelectionComponent elementSelectionComponent,
+        private void EnableUI(ElementSelectionComponent elementSelectionComponent,
             HealthBarUIReferenceComponent healthBar)
         {
             elementSelectionComponent.MustEnableFeedback = false;

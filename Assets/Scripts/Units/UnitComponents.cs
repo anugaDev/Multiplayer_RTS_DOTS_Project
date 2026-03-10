@@ -65,7 +65,9 @@ namespace Units
     public enum UnitState : byte
     {
         Idle   = 0,
+
         Moving = 1,
+
         Acting = 2
     }
 

@@ -40,7 +40,7 @@ namespace Units.Worker
             _ghostOwnerLookup.Update(this);
             _transformLookup.Update(this);
 
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
             foreach ((RefRW<LocalTransform>                      workerTransform,
                       RefRO<WorkerStoringTagComponent>           storingTag,

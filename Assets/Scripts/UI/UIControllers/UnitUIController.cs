@@ -53,8 +53,13 @@ namespace UI
 
         public void EnableUI()
         {
-            _healthbarCanvas.enabled = true;
+            EnableHealthBar();
             _selectionCanvas.enabled = true;
+        }
+
+        public void EnableHealthBar()
+        {
+            _healthbarCanvas.enabled = true;
         }
 
         public void SetHealthBarOffset(float3 offset)

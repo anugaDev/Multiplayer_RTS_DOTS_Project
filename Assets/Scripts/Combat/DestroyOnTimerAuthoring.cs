@@ -11,7 +11,7 @@ namespace Combat
         {
             public override void Bake(DestroyOnTimerAuthoring authoring)
             {
-                var entity = GetEntity(TransformUsageFlags.Dynamic);
+                Entity entity = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent(entity, new DestroyOnTimer { Value = authoring.DestroyOnTimer });
             }
         }

@@ -1,4 +1,4 @@
-﻿using ElementCommons;
+using ElementCommons;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -20,8 +20,8 @@ namespace Combat
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
-            var damageOnTriggerJob = new DamageOnTriggerJob
+            EndSimulationEntityCommandBufferSystem.Singleton ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
+            DamageOnTriggerJob damageOnTriggerJob = new DamageOnTriggerJob
             {
                 DamageOnTriggerLookup = SystemAPI.GetComponentLookup<DamageOnTrigger>(true),
                 TeamLookup = SystemAPI.GetComponentLookup<ElementTeamComponent>(true),
@@ -29,7 +29,7 @@ namespace Combat
                 DamageBufferLookup = SystemAPI.GetBufferLookup<DamageBufferElement>(true),
                 ECB = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged)
             };
-            var simulationSingleton = SystemAPI.GetSingleton<SimulationSingleton>();
+            SimulationSingleton simulationSingleton = SystemAPI.GetSingleton<SimulationSingleton>();
             state.Dependency = damageOnTriggerJob.Schedule(simulationSingleton, state.Dependency);
         }
     }
@@ -65,21 +65,19 @@ namespace Combat
                 return;
             }
             
-            // Don't apply damage multiple times
-            var alreadyDamagedBuffer = AlreadyDamagedLookup[damageDealingEntity];
-            foreach (var alreadyDamagedEntity in alreadyDamagedBuffer)
+            DynamicBuffer<AlreadyDamagedEntity> alreadyDamagedBuffer = AlreadyDamagedLookup[damageDealingEntity];
+            foreach (AlreadyDamagedEntity alreadyDamagedEntity in alreadyDamagedBuffer)
             {
                 if (alreadyDamagedEntity.Value.Equals(damageReceivingEntity)) return;
             }
             
-            // Ignore friendly fire
-            if (TeamLookup.TryGetComponent(damageDealingEntity, out var damageDealingTeam) &&
-                TeamLookup.TryGetComponent(damageReceivingEntity, out var damageReceivingTeam))
+            if (TeamLookup.TryGetComponent(damageDealingEntity, out ElementTeamComponent damageDealingTeam) &&
+                TeamLookup.TryGetComponent(damageReceivingEntity, out ElementTeamComponent damageReceivingTeam))
             {
                 if (damageDealingTeam.Team == damageReceivingTeam.Team) return;
             }
             
-            var damageOnTrigger = DamageOnTriggerLookup[damageDealingEntity];
+            DamageOnTrigger damageOnTrigger = DamageOnTriggerLookup[damageDealingEntity];
             ECB.AppendToBuffer(damageReceivingEntity, new DamageBufferElement { Value = damageOnTrigger.Value });
             ECB.AppendToBuffer(damageDealingEntity, new AlreadyDamagedEntity { Value = damageReceivingEntity });
         }

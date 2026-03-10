@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: -2272804216922036194}
   - component: {fileID: 4973633876846513523}
   - component: {fileID: 2278787620644947345}
+  - component: {fileID: -5054368923121063078}
   m_Layer: 0
   m_Name: Ballista
   m_TagString: Untagged
@@ -91,7 +92,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _moveSpeed: 5
   _unitType: 3
-  _selectableType: 3
   _teamMaterials:
     _redTeamMaterial: {fileID: 2100000, guid: 8fd4f7d86241f9b4986a9ec69d491ff6, type: 2}
     _blueTeamMaterial: {fileID: 2100000, guid: 582a4efff9ce3464696df82ab7f1c70c, type: 2}
@@ -300,6 +300,24 @@ MonoBehaviour:
   - {fileID: 1945663553393164627}
   - {fileID: 2521788917699703540}
   - {fileID: 7031693687116602557}
+--- !u!114 &-5054368923121063078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2147052715152915695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64d7eaa8152f4f61b8ca8ab9b5e7196e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _targetRadius: 4
+  _attackRange: 20
+  _firePointOffset: {x: 0, y: 0, z: 0}
+  _attackCooldownTime: 2
+  _attackDamage: 50
+  _netCodeConfig: {fileID: 0}
 --- !u!1001 &3174823258172415965
 PrefabInstance:
   m_ObjectHideFlags: 0

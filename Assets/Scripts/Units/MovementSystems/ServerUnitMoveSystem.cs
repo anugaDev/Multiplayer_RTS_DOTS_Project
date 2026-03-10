@@ -55,8 +55,6 @@ namespace Units.MovementSystems
                 if (!pathComponent.ValueRO.HasPath)
                     return;
 
-                // Server was mid-walk but client cleared waypoints (client arrived first).
-                // Finish walking to last known target position so the unit actually arrives.
                 float3 lastTarget = pathComponent.ValueRO.LastTargetPosition;
                 lastTarget.y = transform.ValueRO.Position.y;
 
@@ -84,14 +82,12 @@ namespace Units.MovementSystems
                 return;
             }
 
-            // Use the LAST waypoint as the final destination for fallback movement
             float3 lastWaypoint = waypointsInput.ValueRO.GetWaypoint(count - 1);
             bool isNewPath = !pathComponent.ValueRO.HasPath ||
                              math.distancesq(pathComponent.ValueRO.LastTargetPosition, lastWaypoint) > 0.01f;
 
             if (isNewPath)
             {
-                // Guard: don't restart when stale waypoints arrive after unit already reached destination
                 float3 toFinal = lastWaypoint - transform.ValueRO.Position;
                 toFinal.y = 0f;
                 if (math.lengthsq(toFinal) < FINAL_POSITION_THRESHOLD * FINAL_POSITION_THRESHOLD)
@@ -135,7 +131,7 @@ namespace Units.MovementSystems
 
                 float3 dir = toWaypoint / distance;
                 float move = moveSpeed.ValueRO.Speed * deltaTime;
-                if (move > distance) move = distance; // Prevent overshoot!
+                if (move > distance) move = distance;
                 transform.ValueRW.Position += dir * move;
                 transform.ValueRW.Rotation = quaternion.LookRotationSafe(dir, math.up());
                 return;

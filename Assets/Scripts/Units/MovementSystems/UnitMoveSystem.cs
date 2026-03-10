@@ -8,9 +8,6 @@ using Unity.Transforms;
 
 namespace Units.MovementSystems
 {
-    /// DISABLED: Movement is now handled by ServerUnitMoveSystem on both client and server.
-    /// This system used PathWaypointBuffer (client-only) which diverged from the server's
-    /// UnitWaypointsInputComponent, causing prediction mismatches and visual jitter.
     [DisableAutoCreation]
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]

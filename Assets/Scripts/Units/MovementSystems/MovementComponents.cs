@@ -9,6 +9,11 @@ namespace Units.MovementSystems
         public float Value;
     }
 
+    public struct UnitAttackRange : IComponentData
+    {
+        public float Value;
+    }
+
     public struct UnitTargetEntity : IComponentData
     {
         [GhostField] public Entity Value;

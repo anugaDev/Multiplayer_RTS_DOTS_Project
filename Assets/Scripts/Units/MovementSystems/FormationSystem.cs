@@ -32,9 +32,9 @@ namespace Units.MovementSystems
 
         protected override void OnUpdate()
         {
-            var commandedUnits   = new NativeList<Entity>(Allocator.Temp);
-            var requestedTargets = new NativeList<float3>(Allocator.Temp);
-            var teams            = new NativeList<int>(Allocator.Temp);
+            NativeList<Entity> commandedUnits   = new NativeList<Entity>(Allocator.Temp);
+            NativeList<float3> requestedTargets = new NativeList<float3>(Allocator.Temp);
+            NativeList<int>    teams            = new NativeList<int>(Allocator.Temp);
 
             foreach ((RefRO<SetInputStateTargetComponent> input,
                      RefRO<ElementSelectionComponent> selection,
@@ -62,7 +62,7 @@ namespace Units.MovementSystems
                 return;
             }
 
-            var processed = new NativeHashSet<int>(commandedUnits.Length, Allocator.Temp);
+            NativeHashSet<int> processed = new NativeHashSet<int>(commandedUnits.Length, Allocator.Temp);
 
             for (int i = 0; i < commandedUnits.Length; i++)
             {
@@ -71,7 +71,7 @@ namespace Units.MovementSystems
                 float3 baseTarget = requestedTargets[i];
                 int    unitTeam   = teams[i];
 
-                var group = new NativeList<int>(Allocator.Temp);
+                NativeList<int> group = new NativeList<int>(Allocator.Temp);
                 for (int j = i; j < commandedUnits.Length; j++)
                 {
                     if (teams[j] == unitTeam &&
@@ -98,7 +98,7 @@ namespace Units.MovementSystems
             float3 baseTarget)
         {
             int total = group.Length;
-            var claimed = new NativeList<float3>(total, Allocator.Temp);
+            NativeList<float3> claimed = new NativeList<float3>(total, Allocator.Temp);
 
             for (int gi = 0; gi < total; gi++)
             {

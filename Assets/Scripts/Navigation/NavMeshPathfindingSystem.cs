@@ -113,27 +113,63 @@ namespace Navigation
 
             if (inputTarget.ValueRO.TargetEntity != Entity.Null && EntityManager.Exists(inputTarget.ValueRO.TargetEntity))
             {
-                if (EntityManager.HasComponent<Buildings.BuildingObstacleSizeComponent>(inputTarget.ValueRO.TargetEntity) &&
-                    EntityManager.HasComponent<LocalTransform>(inputTarget.ValueRO.TargetEntity))
+                Entity targetEntity = inputTarget.ValueRO.TargetEntity;
+
+                if (EntityManager.HasComponent<Buildings.BuildingObstacleSizeComponent>(targetEntity) &&
+                    EntityManager.HasComponent<LocalTransform>(targetEntity))
                 {
-                    var buildingTransform = EntityManager.GetComponentData<LocalTransform>(inputTarget.ValueRO.TargetEntity);
-                    var buildingSize = EntityManager.GetComponentData<Buildings.BuildingObstacleSizeComponent>(inputTarget.ValueRO.TargetEntity).Size;
+                    LocalTransform buildingTransform                    = EntityManager.GetComponentData<LocalTransform>(targetEntity);
+                    float3         buildingSize                          = EntityManager.GetComponentData<Buildings.BuildingObstacleSizeComponent>(targetEntity).Size;
 
                     float3 buildingCenter = buildingTransform.Position;
                     float3 halfExtents    = buildingSize * 0.5f;
 
-                    float3 dir = new float3(startPos.x - buildingCenter.x, 0f, startPos.z - buildingCenter.z);
+                    float3 toCenter = new float3(startPos.x - buildingCenter.x, 0f, startPos.z - buildingCenter.z);
+                    if (math.lengthsq(toCenter) < 0.001f)
+                        toCenter = new float3(1f, 0f, 0f);
 
-                    if (math.lengthsq(dir) < 0.001f)
-                        dir = new float3(1f, 0f, 0f);
+                    float  distToCenter  = math.length(toCenter);
+                    float3 dir           = toCenter / distToCenter;
 
-                    dir = math.normalize(dir);
                     float tx = dir.x != 0f ? math.abs(halfExtents.x / dir.x) : float.MaxValue;
                     float tz = dir.z != 0f ? math.abs(halfExtents.z / dir.z) : float.MaxValue;
-                    float t  = math.min(tx, tz);
+                    float t  = math.min(tx, tz); // distance from center to boundary along dir
 
-                    endPos = (Vector3)(buildingCenter + dir * (t + 0.5f));
+                    float stoppingDist   = inputTarget.ValueRO.StoppingDistance;
+                    float distToBoundary = distToCenter - t;
+
+                    if (distToBoundary <= stoppingDist)
+                    {
+                        inputTarget.ValueRW.HasNewTarget = false;
+                        pathComponent.ValueRW.HasPath    = false;
+                        return;
+                    }
+
+                    endPos   = (Vector3)(buildingCenter + dir * (t + stoppingDist));
                     endPos.y = startPos.y;
+                }
+                else if (EntityManager.HasComponent<Units.UnitTagComponent>(targetEntity) &&
+                         EntityManager.HasComponent<LocalTransform>(targetEntity))
+                {
+                    float stoppingDist = inputTarget.ValueRO.StoppingDistance;
+
+                    if (stoppingDist > 0f)
+                    {
+                        float3 targetPos  = EntityManager.GetComponentData<LocalTransform>(targetEntity).Position;
+                        float3 toTarget   = new float3(targetPos.x - startPos.x, 0f, targetPos.z - startPos.z);
+                        float  currentDist = math.length(toTarget);
+
+                        if (currentDist <= stoppingDist)
+                        {
+                            inputTarget.ValueRW.HasNewTarget = false;
+                            pathComponent.ValueRW.HasPath    = false;
+                            return;
+                        }
+
+                        float3 dir = math.normalize(-toTarget);
+                        endPos     = (Vector3)(targetPos + dir * stoppingDist);
+                        endPos.y   = startPos.y;
+                    }
                 }
             }
 
@@ -223,7 +259,7 @@ namespace Navigation
             DynamicBuffer<PathWaypointBuffer> pathBuffer)
         {
             int count = math.min(pathBuffer.Length, 8);
-            var w = waypointsInput.ValueRW;
+            UnitWaypointsInputComponent w = waypointsInput.ValueRW;
             w.WaypointCount = count;
             for (int i = 0; i < count; i++)
                 w.SetWaypoint(i, pathBuffer[i].Position);

@@ -32,9 +32,9 @@ namespace Units.MovementSystems
 
         protected override void OnUpdate()
         {
-            var idleEntities  = new NativeList<Entity>(Allocator.Temp);
-            var idlePositions = new NativeList<float3>(Allocator.Temp);
-            var idleTeams     = new NativeList<int>(Allocator.Temp);
+            NativeList<Entity> idleEntities  = new NativeList<Entity>(Allocator.Temp);
+            NativeList<float3> idlePositions = new NativeList<float3>(Allocator.Temp);
+            NativeList<int>    idleTeams     = new NativeList<int>(Allocator.Temp);
 
             foreach ((RefRO<LocalTransform>               transform,
                       RefRO<PathComponent>                path,
@@ -67,7 +67,7 @@ namespace Units.MovementSystems
                 return;
             }
 
-            var pushed = new NativeHashSet<int>(idleEntities.Length, Allocator.Temp);
+            NativeHashSet<int> pushed = new NativeHashSet<int>(idleEntities.Length, Allocator.Temp);
 
             for (int i = 0; i < idleEntities.Length; i++)
             {

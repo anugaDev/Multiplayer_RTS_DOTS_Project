@@ -1,4 +1,4 @@
-﻿using Unity.Burst;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.NetCode;
 
@@ -16,12 +16,12 @@ namespace Combat
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
-            var ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
+            EndSimulationEntityCommandBufferSystem.Singleton ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
+            EntityCommandBuffer ecb = ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
 
-            var currentTick = SystemAPI.GetSingleton<NetworkTime>().ServerTick;
+            NetworkTick currentTick = SystemAPI.GetSingleton<NetworkTime>().ServerTick;
 
-            foreach (var (destroyAtTick, entity) in SystemAPI.Query<DestroyAtTick>().WithAll<Simulate>()
+            foreach ((DestroyAtTick destroyAtTick, Entity entity) in SystemAPI.Query<DestroyAtTick>().WithAll<Simulate>()
                          .WithNone<DestroyEntityTag>().WithEntityAccess())
             {
                 if (currentTick.Equals(destroyAtTick.Value) || currentTick.IsNewerThan(destroyAtTick.Value))

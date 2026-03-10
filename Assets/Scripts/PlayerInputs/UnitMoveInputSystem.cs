@@ -135,10 +135,10 @@ namespace PlayerInputs
 
         private void SetUnitPosition(CollisionWorld collisionWorld, RaycastInput targetInput, RaycastInput groundInput)
         {
-            bool hitTarget = collisionWorld.CastRay(targetInput, out var targetHit);
+            bool hitTarget = collisionWorld.CastRay(targetInput, out RaycastHit targetHit);
             Entity targetEntity = hitTarget ? targetHit.Entity : Entity.Null;
 
-            if (!collisionWorld.CastRay(groundInput, out var groundHit))
+            if (!collisionWorld.CastRay(groundInput, out RaycastHit groundHit))
             {
                 return;
             }
@@ -206,10 +206,13 @@ namespace PlayerInputs
             return size;
         }
 
-        private float CalculateStoppingDistance(Entity targetEntity)
+        private float CalculateStoppingDistance(Entity targetEntity, Entity attackerEntity)
         {
             if (EntityManager.HasComponent<BuildingObstacleSizeComponent>(targetEntity))
             {
+                if (EntityManager.HasComponent<Units.MovementSystems.UnitAttackRange>(attackerEntity))
+                    return EntityManager.GetComponentData<Units.MovementSystems.UnitAttackRange>(attackerEntity).Value;
+
                 return 1.6f;
             }
 
@@ -220,6 +223,9 @@ namespace PlayerInputs
 
             if (EntityManager.HasComponent<UnitTagComponent>(targetEntity))
             {
+                if (EntityManager.HasComponent<Units.MovementSystems.UnitAttackRange>(attackerEntity))
+                    return EntityManager.GetComponentData<Units.MovementSystems.UnitAttackRange>(attackerEntity).Value;
+
                 return UNIT_STOPPING_DISTANCE;
             }
 
@@ -243,7 +249,7 @@ namespace PlayerInputs
             float stoppingDistance = DEFAULT_STOPPING_DISTANCE;
             if (hasTarget)
             {
-                stoppingDistance = CalculateStoppingDistance(targetEntity);
+                stoppingDistance = CalculateStoppingDistance(targetEntity, entity);
             }
 
             int currentVersion = EntityManager.GetComponentData<SetInputStateTargetComponent>(entity).TargetVersion;

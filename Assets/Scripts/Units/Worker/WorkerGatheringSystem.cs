@@ -52,7 +52,7 @@ namespace Units.Worker
             if (canGather)
                 _gatherTimer -= GATHER_INTERVAL_SECONDS;
 
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
             foreach ((RefRW<LocalTransform>                      workerTransform,
                       RefRO<WorkerGatheringTagComponent>         gatheringTag,
