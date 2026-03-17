@@ -5,6 +5,8 @@ using GatherableResources;
 using ScriptableObjects;
 using Types;
 using UI;
+using Units;
+using Units.Worker;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -17,6 +19,10 @@ namespace Buildings
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     public partial class PlaceBuildingCommandServerSystem : SystemBase
     {
+        private const float HALF_EXTENT = 0.5F;
+        
+        private const int WORKER_DELAY = 5;
+
         private BuildingsPrefabEntityFactory _prefabFactory;
 
         private EntityCommandBuffer _entityCommandBuffer;
@@ -26,7 +32,6 @@ namespace Buildings
         protected override void OnCreate()
         {
             _prefabFactory = new BuildingsPrefabEntityFactory();
-
             InitializeResourceDeductionActions();
 
             RequireForUpdate<PlayerTagComponent>();
@@ -82,11 +87,11 @@ namespace Buildings
 
                 if (EntityManager.Exists(delay.ValueRO.WorkerEntity) && EntityManager.Exists(delay.ValueRO.BuildingEntity))
                 {
-                    int currentVersion = EntityManager.GetComponentData<Units.Worker.SetServerStateTargetComponent>(delay.ValueRO.WorkerEntity).TargetVersion;
-                    int inputVersion = EntityManager.GetComponentData<Units.Worker.SetInputStateTargetComponent>(delay.ValueRO.WorkerEntity).TargetVersion;
+                    int currentVersion = EntityManager.GetComponentData<SetServerStateTargetComponent>(delay.ValueRO.WorkerEntity).TargetVersion;
+                    int inputVersion = EntityManager.GetComponentData<SetInputStateTargetComponent>(delay.ValueRO.WorkerEntity).TargetVersion;
                     int maxVersion = math.max(currentVersion, inputVersion);
 
-                    Units.Worker.SetServerStateTargetComponent serverTarget = new Units.Worker.SetServerStateTargetComponent
+                    SetServerStateTargetComponent serverTarget = new SetServerStateTargetComponent
                     {
                         TargetEntity = delay.ValueRO.BuildingEntity,
                         TargetPosition = delay.ValueRO.TargetPosition,
@@ -115,15 +120,19 @@ namespace Buildings
             if (IsDuplicateCommand(command, lastProcessedCommand.ValueRO))
                 return;
 
-            lastProcessedCommand.ValueRW = new LastProcessedBuildingCommand
+            lastProcessedCommand.ValueRW = GetLastProcessedBuildingCommand(command);
+            DeductBuildingCost(command.BuildingType, playerEntity);
+            InstantiateBuilding(command, playerTeam, networkId);
+        }
+
+        private LastProcessedBuildingCommand GetLastProcessedBuildingCommand(PlaceBuildingCommand command)
+        {
+            return new LastProcessedBuildingCommand
             {
                 Tick = command.Tick,
                 Position = command.Position,
                 BuildingType = command.BuildingType
             };
-
-            DeductBuildingCost(command.BuildingType, playerEntity);
-            InstantiateBuilding(command, playerTeam, networkId);
         }
 
         private bool IsDuplicateCommand(PlaceBuildingCommand newCommand, LastProcessedBuildingCommand lastCommand)
@@ -151,13 +160,12 @@ namespace Buildings
             _entityCommandBuffer.SetComponent(newBuilding, newTransform);
             _entityCommandBuffer.SetComponent(newBuilding, new GhostOwner{NetworkId = networkId});
             _entityCommandBuffer.SetComponent(newBuilding, new ElementTeamComponent{Team = playerTeam});
-            
             CommandSelectedWorkers(buildingEntity, newBuilding, placeBuildingCommand.Position, playerTeam);
         }
 
         private void CommandSelectedWorkers(Entity buildingPrefab, Entity newBuilding, float3 targetPosition, TeamType playerTeam)
         {
-            float stoppingDistance = 1.0f; // Since TargetPosition is already the edge, we only need a marginal stop distance.
+            float stoppingDistance = 1.0f;
 
             float3 buildingSize = new float3(1, 1, 1);
             if (EntityManager.HasComponent<BuildingObstacleSizeComponent>(buildingPrefab))
@@ -165,47 +173,87 @@ namespace Buildings
                 buildingSize = EntityManager.GetComponentData<BuildingObstacleSizeComponent>(buildingPrefab).Size;
             }
 
-            foreach ((RefRO<ElementTeamComponent> team, Units.UnitTypeComponent unitType, RefRO<Units.Worker.SetInputStateTargetComponent> inputTarget, RefRO<LocalTransform> transform, Entity entity) in
-                     SystemAPI.Query<RefRO<ElementTeamComponent>, Units.UnitTypeComponent, RefRO<Units.Worker.SetInputStateTargetComponent>, RefRO<LocalTransform>>().WithEntityAccess())
+            foreach ((RefRO<ElementTeamComponent> team, UnitTypeComponent unitType, RefRO<SetInputStateTargetComponent> inputTarget, RefRO<LocalTransform> transform, Entity entity) in
+                     SystemAPI.Query<RefRO<ElementTeamComponent>, UnitTypeComponent, RefRO<SetInputStateTargetComponent>, RefRO<LocalTransform>>().WithEntityAccess())
             {
-                if (team.ValueRO.Team != playerTeam)
-                    continue;
-
-                if (unitType.Type != Types.UnitType.Worker)
-                    continue;
-
-                if (!inputTarget.ValueRO.IsFollowingTarget || inputTarget.ValueRO.TargetEntity != Entity.Null)
-                    continue;
-                if (math.distancesq(inputTarget.ValueRO.TargetPosition, targetPosition) > 0.1f)
-                    continue;
-
-                int currentVersion = EntityManager.GetComponentData<Units.Worker.SetServerStateTargetComponent>(entity).TargetVersion;
-
-                float3 workerPos = transform.ValueRO.Position;
-                float3 halfExtents = buildingSize * 0.5f;
-                float3 dir = new float3(workerPos.x - targetPosition.x, 0f, workerPos.z - targetPosition.z);
-
-                if (math.lengthsq(dir) < 0.001f)
-                    dir = new float3(1f, 0f, 0f);
-
-                dir = math.normalize(dir);
-                float tx = dir.x != 0f ? math.abs(halfExtents.x / dir.x) : float.MaxValue;
-                float tz = dir.z != 0f ? math.abs(halfExtents.z / dir.z) : float.MaxValue;
-                float t = math.min(tx, tz);
-
-                float3 clampedTarget = targetPosition + dir * (t + 0.5f);
-                clampedTarget.y = workerPos.y;
-
-                Entity delayEntity = _entityCommandBuffer.CreateEntity();
-                _entityCommandBuffer.AddComponent(delayEntity, new DelayWorkerToBuildingCommandComponent
+                if (team.ValueRO.Team != playerTeam || unitType.Type != UnitType.Worker)
                 {
-                    WorkerEntity = entity,
-                    BuildingEntity = newBuilding,
-                    TargetPosition = clampedTarget,
-                    PlayerTeam = playerTeam,
-                    FramesToWait = 5
-                });
+                    return;
+                }
+
+                CommandSelectedWorker(newBuilding, targetPosition, inputTarget, transform, buildingSize, entity);
             }
+        }
+
+        private void CommandSelectedWorker(Entity newBuilding, float3 targetPosition, RefRO<SetInputStateTargetComponent> inputTarget, RefRO<LocalTransform> transform, float3 buildingSize, Entity entity)
+        {
+
+            if (IsInputTargetAvailable(targetPosition, inputTarget))
+            {
+                return;
+            }
+
+            float3 clampedTarget = GetClampedTargetPosition(targetPosition, transform, buildingSize);
+            Entity delayEntity = _entityCommandBuffer.CreateEntity();
+            _entityCommandBuffer.AddComponent(delayEntity, GetWorkerBuildingCommandComponent(newBuilding, entity, clampedTarget));
+        }
+
+        private DelayWorkerToBuildingCommandComponent GetWorkerBuildingCommandComponent(Entity newBuilding, Entity entity, float3 clampedTarget)
+        {
+            return new DelayWorkerToBuildingCommandComponent
+            {
+                WorkerEntity = entity,
+                BuildingEntity = newBuilding,
+                TargetPosition = clampedTarget,
+                FramesToWait = WORKER_DELAY
+            };
+        }
+
+        private bool IsInputTargetAvailable(float3 targetPosition, RefRO<SetInputStateTargetComponent> inputTarget)
+        {
+            if (!inputTarget.ValueRO.IsFollowingTarget || inputTarget.ValueRO.TargetEntity != Entity.Null)
+            {
+                return true;
+            }
+
+            if (math.distancesq(inputTarget.ValueRO.TargetPosition, targetPosition) > 0.1f)
+            {
+                return true;
+                
+            }
+
+            return false;
+        }
+
+        private float3 GetClampedTargetPosition(float3 targetPosition, RefRO<LocalTransform> transform, float3 buildingSize)
+        {
+            float3 workerPos = transform.ValueRO.Position;
+            float3 halfExtents = buildingSize * HALF_EXTENT;
+            float3 dir = GetDirection(targetPosition, workerPos);
+
+            float hitPoint = GetHitPoint(dir, halfExtents);
+            float3 clampedTarget = targetPosition + dir * (hitPoint + HALF_EXTENT);
+            clampedTarget.y = workerPos.y;
+            return clampedTarget;
+        }
+
+        private float GetHitPoint(float3 dir, float3 halfExtents)
+        {
+            float verticalHitPoint = dir.x != 0f ? math.abs(halfExtents.x / dir.x) : float.MaxValue;
+            float horizontalHitPoint = dir.z != 0f ? math.abs(halfExtents.z / dir.z) : float.MaxValue;
+            return math.min(verticalHitPoint, horizontalHitPoint);
+        }
+
+        private float3 GetDirection(float3 targetPosition, float3 workerPos)
+        {
+            float3 dir = new float3(workerPos.x - targetPosition.x, 0f, workerPos.z - targetPosition.z);
+
+            if (math.lengthsq(dir) < 0.001f)
+            {
+                dir = new float3(1f, 0f, 0f);
+            }
+
+            return math.normalize(dir);
         }
 
         private void InitializeFactory()

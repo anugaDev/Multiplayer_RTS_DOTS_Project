@@ -8,6 +8,11 @@ namespace Combat
     [UpdateBefore(typeof(DestroyEntitySystem))]
     public partial struct ApplyDamageSystem : ISystem
     {
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<NetworkTime>();
+        }
+
         public void OnUpdate(ref SystemState state)
         {
             state.CompleteDependency();

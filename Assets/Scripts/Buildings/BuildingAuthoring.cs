@@ -92,6 +92,16 @@ namespace Buildings
             {
                 Vector3 size = new Vector3(5f, 5f, 5f);
 
+                size = GetCollider(authoring, size);
+
+                return new BuildingObstacleSizeComponent
+                {
+                    Size = size
+                };
+            }
+
+            private Vector3 GetCollider(BuildingAuthoring authoring, Vector3 size)
+            {
                 BoxCollider boxCollider = authoring.GetComponent<BoxCollider>();
                 if (boxCollider != null)
                 {
@@ -99,20 +109,23 @@ namespace Buildings
                 }
                 else
                 {
-                    if (authoring.buildingView != null)
-                    {
-                        BoxCollider childCollider = authoring.buildingView.GetComponentInChildren<BoxCollider>();
-                        if (childCollider != null)
-                        {
-                            size = childCollider.size;
-                        }
-                    }
+                    size = GetViewCollider(authoring, size);
                 }
 
-                return new BuildingObstacleSizeComponent
+                return size;
+            }
+
+            private Vector3 GetViewCollider(BuildingAuthoring authoring, Vector3 size)
+            {
+                BoxCollider childCollider = authoring.buildingView.GetComponentInChildren<BoxCollider>();
+                
+                if (childCollider == null)
                 {
-                    Size = size
-                };
+                    return size;
+                }
+                size = childCollider.size;
+
+                return size;
             }
         }
     }

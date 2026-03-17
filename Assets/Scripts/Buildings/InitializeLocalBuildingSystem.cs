@@ -7,7 +7,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Units
 {

@@ -3,18 +3,21 @@ using Types;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Rendering;
+using Unity.Transforms;
 using UnityEngine.Rendering;
 
 namespace Buildings
 {
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     public partial class InitializeBuildingSystem : SystemBase
-    {
-        private BuildingMaterialsConfiguration _materialsConfiguration;
+    { 
+        private const int MAX_PARENT_DEPTH = 32;
         
-        private BatchMaterialID _redMaterial;
+        private BuildingMaterialsConfiguration _materialsConfiguration;
 
         private BatchMaterialID _blueMaterial;
+
+        private BatchMaterialID _redMaterial;
 
         protected override void OnCreate()
         {
@@ -33,7 +36,7 @@ namespace Buildings
         {
             EntityCommandBuffer entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp);
 
-            foreach ((ElementTeamComponent buildingTeam, DynamicBuffer<LinkedEntityGroup> linkedEntities, Entity buildingEntity)
+            foreach ((ElementTeamComponent buildingTeam, DynamicBuffer<LinkedEntityGroup> linkedEntities, Entity _)
                      in SystemAPI.Query<ElementTeamComponent, DynamicBuffer<LinkedEntityGroup>>()
                          .WithAll<NewBuildingTagComponent>().WithEntityAccess())
             {
@@ -42,14 +45,12 @@ namespace Buildings
 
             entityCommandBuffer.Playback(EntityManager);
             entityCommandBuffer.Dispose();
-
-            // Update construction visuals for all buildings
             UpdateConstructionVisuals();
         }
 
         private void UpdateConstructionVisuals()
         {
-            EntityCommandBuffer ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+            EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
             foreach ((BuildingPivotReferencesComponent pivotRefs,
                       BuildingTypeComponent _,
@@ -58,55 +59,110 @@ namespace Buildings
                                         BuildingTypeComponent>()
                          .WithEntityAccess())
             {
-                bool isFinished = true;
-
-                if (EntityManager.HasComponent<BuildingConstructionProgressComponent>(buildingEntity))
-                {
-                    BuildingConstructionProgressComponent progress =
-                        EntityManager.GetComponentData<BuildingConstructionProgressComponent>(buildingEntity);
-
-                    isFinished = progress.ConstructionTime > 0 && progress.Value >= progress.ConstructionTime;
-                }
-
-                if (!EntityManager.HasBuffer<LinkedEntityGroup>(buildingEntity))
-                    continue;
-
-                DynamicBuffer<LinkedEntityGroup> linkedEntities = 
-                    EntityManager.GetBuffer<LinkedEntityGroup>(buildingEntity);
-
-                for (int i = 0; i < linkedEntities.Length; i++)
-                {
-                    Entity childEntity = linkedEntities[i].Value;
-                    if (childEntity == buildingEntity)
-                        continue;
-
-                    bool belongsToPivot = IsChildOf(childEntity, pivotRefs.PivotEntity);
-                    bool belongsToSite = IsChildOf(childEntity, pivotRefs.ConstructionSiteEntity);
-
-                    if (belongsToPivot)
-                        SetEntityEnabled(childEntity, isFinished, ecb);
-                    else if (belongsToSite)
-                        SetEntityEnabled(childEntity, !isFinished, ecb);
-                }
+                UpdateBuildingConstructionVisuals(buildingEntity, pivotRefs, ecb);
             }
 
             ecb.Playback(EntityManager);
             ecb.Dispose();
         }
 
+        private void UpdateBuildingConstructionVisuals(Entity buildingEntity, BuildingPivotReferencesComponent pivotRefs,
+            EntityCommandBuffer ecb)
+        {
+            bool isFinished = IsFinishedBuildingOnSpawn(buildingEntity);
+
+            if (!EntityManager.HasBuffer<LinkedEntityGroup>(buildingEntity))
+                return;
+
+            DynamicBuffer<LinkedEntityGroup> linkedEntities =
+                EntityManager.GetBuffer<LinkedEntityGroup>(buildingEntity);
+            SetBuildingConstructionVisuals(buildingEntity, pivotRefs, ecb, linkedEntities, isFinished);
+        }
+
+        private void SetBuildingConstructionVisuals(Entity buildingEntity, BuildingPivotReferencesComponent pivotRefs,
+            EntityCommandBuffer ecb, DynamicBuffer<LinkedEntityGroup> linkedEntities, bool isFinished)
+        {
+            for (int i = 0; i < linkedEntities.Length; i++)
+            {
+                Entity childEntity = linkedEntities[i].Value;
+                if (childEntity == buildingEntity)
+                {
+                    continue;
+                }
+
+                SetBuildingConstructionVisual(pivotRefs, isFinished, ecb, childEntity);
+            }
+        }
+
+        private void SetBuildingConstructionVisual(BuildingPivotReferencesComponent pivotRefs, bool isFinished,
+            EntityCommandBuffer ecb, Entity childEntity)
+        {
+            bool belongsToPivot = IsChildOf(childEntity, pivotRefs.PivotEntity);
+            bool belongsToSite = IsChildOf(childEntity, pivotRefs.ConstructionSiteEntity);
+
+            if (belongsToPivot)
+            {
+                SetEntityEnabled(childEntity, isFinished, ecb);
+            }
+            else if (belongsToSite)
+            {
+                SetEntityEnabled(childEntity, !isFinished, ecb);
+            }
+        }
+
+        private bool IsFinishedBuildingOnSpawn(Entity buildingEntity)
+        {
+            if (!EntityManager.HasComponent<BuildingConstructionProgressComponent>(buildingEntity))
+            {
+                return true;
+            }
+
+            return GetIsFinishedBuildingByComponent(buildingEntity);
+        }
+
+        private bool GetIsFinishedBuildingByComponent(Entity buildingEntity)
+        {
+            bool isFinished = true;
+            
+            BuildingConstructionProgressComponent progress =
+                EntityManager.GetComponentData<BuildingConstructionProgressComponent>(buildingEntity);
+
+            return progress.ConstructionTime > 0 && progress.Value >= progress.ConstructionTime;
+        }
+
         private bool IsChildOf(Entity entity, Entity parent)
         {
             if (parent == Entity.Null)
-                return false;
-            if (entity == parent)
-                return true;
-
-            Entity current = entity;
-            while (EntityManager.HasComponent<Unity.Transforms.Parent>(current))
             {
-                Entity parentEntity = EntityManager.GetComponentData<Unity.Transforms.Parent>(current).Value;
+                return false;
+            }
+
+            if (entity == parent)
+            {
+                return true;
+            }
+
+            return IsSameParent(entity, parent);
+        }
+
+        private bool IsSameParent(Entity entity, Entity parent)
+        {
+            Entity current = entity;
+
+            for (int i = 0; i < MAX_PARENT_DEPTH; i++)
+            {
+                if (!EntityManager.HasComponent<Parent>(current))
+                {
+                    return false;
+                }
+
+                Entity parentEntity = EntityManager.GetComponentData<Parent>(current).Value;
+
                 if (parentEntity == parent)
+                {
                     return true;
+                }
+
                 current = parentEntity;
             }
 
@@ -116,18 +172,38 @@ namespace Buildings
         private void SetEntityEnabled(Entity entity, bool enabled, EntityCommandBuffer ecb)
         {
             if (!EntityManager.Exists(entity))
+            {
                 return;
+            }
 
             if (enabled)
             {
-                if (EntityManager.HasComponent<Disabled>(entity))
-                    ecb.RemoveComponent<Disabled>(entity);
+                RemoveDisabledComponent(entity, ecb);
             }
             else
             {
-                if (!EntityManager.HasComponent<Disabled>(entity))
-                    ecb.AddComponent<Disabled>(entity);
+                AddDisableComponent(entity, ecb);
             }
+        }
+
+        private void AddDisableComponent(Entity entity, EntityCommandBuffer ecb)
+        {
+            if (EntityManager.HasComponent<Disabled>(entity))
+            {
+                return;
+            }
+
+            ecb.AddComponent<Disabled>(entity);
+        }
+
+        private void RemoveDisabledComponent(Entity entity, EntityCommandBuffer ecb)
+        {
+            if (!EntityManager.HasComponent<Disabled>(entity))
+            {
+                return;
+            }
+
+            ecb.RemoveComponent<Disabled>(entity);
         }
 
         private void SetTeamMaterialOnChildren(DynamicBuffer<LinkedEntityGroup> linkedEntities, TeamType team, EntityCommandBuffer ecb)
@@ -138,13 +214,20 @@ namespace Buildings
             {
                 Entity childEntity = linkedEntities[i].Value;
 
-                if (EntityManager.HasComponent<MaterialMeshInfo>(childEntity))
-                {
-                    MaterialMeshInfo materialMeshInfo = EntityManager.GetComponentData<MaterialMeshInfo>(childEntity);
-                    materialMeshInfo.MaterialID = batchMaterialID;
-                    ecb.SetComponent(childEntity, materialMeshInfo);
-                }
+                SetMaterialComponent(ecb, childEntity, batchMaterialID);
             }
+        }
+
+        private void SetMaterialComponent(EntityCommandBuffer ecb, Entity childEntity, BatchMaterialID batchMaterialID)
+        {
+            if (!EntityManager.HasComponent<MaterialMeshInfo>(childEntity))
+            {
+                return;
+            }
+
+            MaterialMeshInfo materialMeshInfo = EntityManager.GetComponentData<MaterialMeshInfo>(childEntity);
+            materialMeshInfo.MaterialID = batchMaterialID;
+            ecb.SetComponent(childEntity, materialMeshInfo);
         }
     }
 }

@@ -58,7 +58,6 @@ namespace Buildings
                 entityCommandBuffer.RemoveComponent<NewBuildingTagComponent>(buildingEntity);
             }
 
-            // Pending buildings: check if construction finished
             foreach ((BuildingTypeComponent buildingType, GhostOwner ghostOwner, Entity buildingEntity)
                      in SystemAPI.Query<BuildingTypeComponent, GhostOwner>()
                          .WithAll<BuildingPassivePendingTag>().WithEntityAccess())

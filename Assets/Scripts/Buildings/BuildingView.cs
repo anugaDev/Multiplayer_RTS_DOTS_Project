@@ -13,8 +13,6 @@ namespace Buildings
         
         [SerializeField]
         private GameObject _gameObject;
-        
-        public Transform Transform=> _transform;
 
         public GameObject GameObject=> _gameObject;
 

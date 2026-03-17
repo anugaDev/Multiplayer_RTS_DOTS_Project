@@ -110,9 +110,11 @@ namespace Buildings
     public struct DelayWorkerToBuildingCommandComponent : IComponentData
     {
         public Entity WorkerEntity;
+
         public Entity BuildingEntity;
+
         public float3 TargetPosition;
-        public TeamType PlayerTeam;
+
         public int FramesToWait;
     }
 }
