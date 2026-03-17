@@ -39,8 +39,11 @@ namespace Combat
         [GhostField] 
         public NetworkTick Value;
     }
-    
-    public struct DestroyEntityTag : IComponentData {}
+
+    public struct DestroyEntityTag : IComponentData
+    {
+        
+    }
 
     public struct DamageOnTrigger : IComponentData
     {

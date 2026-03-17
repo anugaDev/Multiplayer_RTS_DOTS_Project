@@ -1,6 +1,5 @@
 using Unity.Entities;
 using Unity.NetCode;
-using UnityEngine;
 
 namespace Combat
 {
@@ -29,18 +28,30 @@ namespace Combat
                          .WithAll<Simulate>()
                          .WithEntityAccess())
             {
-                if (damageBuffer.Length == 0) continue;
-
-                int totalDamage = 0;
-                for (int i = 0; i < damageBuffer.Length; i++)
-                    totalDamage += damageBuffer[i].Value;
-
-                int hpBefore = hp.ValueRO.Value;
-                hp.ValueRW.Value -= totalDamage;
-                damageBuffer.Clear();
-
-                Debug.Log($"[DAMAGE] Entity {entity.Index}: HP {hpBefore} → {hp.ValueRO.Value}  (took {totalDamage} damage)");
+                SetCurrentHealth(damageBuffer, hp);
             }
+        }
+
+        private void SetCurrentHealth(DynamicBuffer<DamageBufferElement> damageBuffer, RefRW<CurrentHitPointsComponent> hp)
+        {
+            if (damageBuffer.Length == 0)
+            {
+                return;
+            }
+
+            int totalDamage = GetTotalDamageBuffer(damageBuffer);
+            hp.ValueRW.Value -= totalDamage;
+            damageBuffer.Clear();
+        }
+
+        private int GetTotalDamageBuffer(DynamicBuffer<DamageBufferElement> damageBuffer)
+        {
+            int totalDamage = 0;
+            for (int i = 0; i < damageBuffer.Length; i++)
+            {
+                totalDamage += damageBuffer[i].Value;
+            }
+            return totalDamage;
         }
     }
 }

@@ -21,8 +21,8 @@ namespace Combat
             state.RequireForUpdate<PhysicsWorldSingleton>();
             _UnitAttackFilter = new CollisionFilter
             {
-                BelongsTo = 1 << 6, // Target Cast
-                CollidesWith = 1 << 1 | 1 << 2 | 1 << 4 // Champions, Minions, Structures
+                BelongsTo = 1 << 6,
+                CollidesWith = 1 << 1 | 1 << 2 | 1 << 4
             };
         }
 
