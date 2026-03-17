@@ -3,6 +3,7 @@ using ElementCommons;
 using GatherableResources;
 using PlayerCamera;
 using PlayerInputs.MoveIndicator;
+using Types;
 using UI;
 using Units;
 using Units.Worker;
@@ -208,9 +209,12 @@ namespace PlayerInputs
 
         private float CalculateStoppingDistance(Entity targetEntity, Entity attackerEntity)
         {
+            bool isWorker = EntityManager.HasComponent<UnitTypeComponent>(attackerEntity) &&
+                            EntityManager.GetComponentData<UnitTypeComponent>(attackerEntity).Type == UnitType.Worker;
+
             if (EntityManager.HasComponent<BuildingObstacleSizeComponent>(targetEntity))
             {
-                if (EntityManager.HasComponent<Units.MovementSystems.UnitAttackRange>(attackerEntity))
+                if (!isWorker && EntityManager.HasComponent<Units.MovementSystems.UnitAttackRange>(attackerEntity))
                     return EntityManager.GetComponentData<Units.MovementSystems.UnitAttackRange>(attackerEntity).Value;
 
                 return 1.6f;
@@ -223,7 +227,7 @@ namespace PlayerInputs
 
             if (EntityManager.HasComponent<UnitTagComponent>(targetEntity))
             {
-                if (EntityManager.HasComponent<Units.MovementSystems.UnitAttackRange>(attackerEntity))
+                if (!isWorker && EntityManager.HasComponent<Units.MovementSystems.UnitAttackRange>(attackerEntity))
                     return EntityManager.GetComponentData<Units.MovementSystems.UnitAttackRange>(attackerEntity).Value;
 
                 return UNIT_STOPPING_DISTANCE;

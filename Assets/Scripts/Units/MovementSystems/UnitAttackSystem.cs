@@ -14,25 +14,30 @@ namespace Units.MovementSystems
     public partial class UnitAttackSystem : SystemBase
     {
         private const float DEFAULT_ATTACK_RANGE = 4.0f;
+
         private const int   DEFAULT_DAMAGE       = 10;
 
-        private ComponentLookup<CurrentHitPointsComponent> _hpLookup;
-        private ComponentLookup<LocalTransform>            _transformLookup;
-        private ComponentLookup<UnitAttackProperties>      _attackPropsLookup;
-        private ComponentLookup<UnitAttackRange>           _attackRangeLookup;
-        private ComponentLookup<UnitMoveSpeedComponent>    _moveSpeedLookup;
-        private BufferLookup<DamageBufferElement>          _damageBufferLookup;
+        private ComponentLookup<UnitAttackProperties> _attackPropsLookup;
 
+        private ComponentLookup<UnitMoveSpeedComponent> _moveSpeedLookup;
+
+        private BufferLookup<DamageBufferElement> _damageBufferLookup;
+
+        private ComponentLookup<CurrentHitPointsComponent> _hpLookup;
+
+        private ComponentLookup<UnitAttackRange> _attackRangeLookup;
+
+        private ComponentLookup<LocalTransform> _transformLookup;
+        
         protected override void OnCreate()
         {
-            _hpLookup           = GetComponentLookup<CurrentHitPointsComponent>(true);
-            _transformLookup    = GetComponentLookup<LocalTransform>(true);
-            _attackPropsLookup  = GetComponentLookup<UnitAttackProperties>(true);
-            _attackRangeLookup  = GetComponentLookup<UnitAttackRange>(true);
-            _moveSpeedLookup    = GetComponentLookup<UnitMoveSpeedComponent>(true);
+            _hpLookup = GetComponentLookup<CurrentHitPointsComponent>(true);
+            _transformLookup = GetComponentLookup<LocalTransform>(true);
+            _attackPropsLookup = GetComponentLookup<UnitAttackProperties>(true);
+            _attackRangeLookup = GetComponentLookup<UnitAttackRange>(true);
+            _moveSpeedLookup = GetComponentLookup<UnitMoveSpeedComponent>(true);
             _damageBufferLookup = GetBufferLookup<DamageBufferElement>(false);
             RequireForUpdate<UnitTagComponent>();
-            Debug.Log("[ATTACK] SystemCreated");
         }
 
         protected override void OnUpdate()
@@ -49,25 +54,18 @@ namespace Units.MovementSystems
             float deltaTime = SystemAPI.Time.DeltaTime;
             EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
-            foreach ((RefRW<LocalTransform>            unitTransform,
-                      RefRO<UnitAttackingTagComponent> attackingTag,
-                      Entity                           unitEntity)
-                     in SystemAPI.Query<RefRW<LocalTransform>,
-                                        RefRO<UnitAttackingTagComponent>>()
-                         .WithAll<Simulate, UnitTagComponent>()
-                         .WithEntityAccess())
+            foreach ((RefRW<LocalTransform> unitTransform, RefRO<UnitAttackingTagComponent> attackingTag,
+                      Entity unitEntity) in SystemAPI.Query<RefRW<LocalTransform>, RefRO<UnitAttackingTagComponent>>()
+                         .WithAll<Simulate, UnitTagComponent>().WithEntityAccess())
             {
                 int damage = _attackPropsLookup.TryGetComponent(unitEntity, out UnitAttackProperties props)
-                             ? props.Damage
-                             : DEFAULT_DAMAGE;
+                             ? props.Damage : DEFAULT_DAMAGE;
 
                 float attackRange = _attackRangeLookup.TryGetComponent(unitEntity, out UnitAttackRange range)
-                                    ? range.Value
-                                    : DEFAULT_ATTACK_RANGE;
+                                    ? range.Value : DEFAULT_ATTACK_RANGE;
 
                 float moveSpeed = _moveSpeedLookup.TryGetComponent(unitEntity, out UnitMoveSpeedComponent speed)
-                                  ? speed.Speed
-                                  : 0f;
+                                  ? speed.Speed : 0f;
 
                 ProcessAttack(ref unitTransform.ValueRW, attackingTag.ValueRO,
                               damage, attackRange, moveSpeed, unitEntity, deltaTime, ref ecb);
@@ -77,30 +75,25 @@ namespace Units.MovementSystems
             ecb.Dispose();
         }
 
-        private void ProcessAttack(ref LocalTransform unitTransform,
-                                   UnitAttackingTagComponent attackingTag,
-                                   int damage, float attackRange, float moveSpeed,
-                                   Entity unitEntity, float deltaTime, ref EntityCommandBuffer ecb)
+        private void ProcessAttack(ref LocalTransform unitTransform, UnitAttackingTagComponent attackingTag, 
+            int damage, float attackRange, float moveSpeed,  Entity unitEntity, float deltaTime, ref EntityCommandBuffer ecb)
         {
             Entity target = attackingTag.TargetEntity;
 
             if (!EntityManager.Exists(target))
             {
-                Debug.Log($"[ATTACK] unit={unitEntity.Index} target gone — removing tag");
                 ecb.RemoveComponent<UnitAttackingTagComponent>(unitEntity);
                 return;
             }
 
             if (!_hpLookup.TryGetComponent(target, out CurrentHitPointsComponent targetHP))
             {
-                Debug.LogWarning($"[ATTACK] unit={unitEntity.Index} target={target.Index} has no HP component — add HitPointAuthoring to prefab!");
                 ecb.RemoveComponent<UnitAttackingTagComponent>(unitEntity);
                 return;
             }
 
             if (targetHP.Value <= 0)
             {
-                Debug.Log($"[ATTACK] unit={unitEntity.Index} target={target.Index} HP<=0 — removing tag");
                 ecb.RemoveComponent<UnitAttackingTagComponent>(unitEntity);
                 return;
             }
@@ -108,10 +101,10 @@ namespace Units.MovementSystems
             if (!_transformLookup.TryGetComponent(target, out LocalTransform targetTransform))
                 return;
 
-            float3 toTarget   = targetTransform.Position - unitTransform.Position;
-            toTarget.y        = 0f;
-            float distanceSq  = math.lengthsq(toTarget);
-            float rangeSq     = attackRange * attackRange;
+            float3 toTarget = targetTransform.Position - unitTransform.Position;
+            toTarget.y = 0f;
+            float distanceSq = math.lengthsq(toTarget);
+            float rangeSq = attackRange * attackRange;
 
             if (distanceSq > rangeSq)
             {
@@ -126,7 +119,6 @@ namespace Units.MovementSystems
                         unitTransform.Rotation  = quaternion.LookRotationSafe(dir, math.up());
                     }
                 }
-                Debug.Log($"[ATTACK] unit={unitEntity.Index} moving to range — dist={math.sqrt(distanceSq):F1} range={attackRange:F1}");
                 return;
             }
 
@@ -136,7 +128,6 @@ namespace Units.MovementSystems
 
             if (!_damageBufferLookup.HasBuffer(target))
             {
-                Debug.LogWarning($"[ATTACK] target={target.Index} has NO DamageBufferElement — add HitPointAuthoring to prefab!");
                 return;
             }
 
@@ -144,7 +135,6 @@ namespace Units.MovementSystems
             if (tickDamage <= 0) tickDamage = 1;
 
             _damageBufferLookup[target].Add(new DamageBufferElement { Value = tickDamage });
-            Debug.Log($"[ATTACK] ✓ unit={unitEntity.Index} dealt {tickDamage} ({damage}/s) to {target.Index} (HP={targetHP.Value})");
         }
     }
 }
