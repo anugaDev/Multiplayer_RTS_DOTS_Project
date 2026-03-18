@@ -47,7 +47,7 @@ namespace ScriptableObjects
 
         public ActionPopUpPayload GetActionPopUpPayload()
         {
-            return new ActionPopUpPayload(_name, _recruitmentCost);
+            return new ActionPopUpPayload(_name, _description, _recruitmentCost);
         }
     }
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   _buildingConfigurations:
   - _buildingType: 0
     _name: Town Center
-    _description: 
+    _description: Allows worker recruitment and resource storing
     _sprite: {fileID: 21300000, guid: ac7f2055586a8e046866d64b30f72ff9, type: 3}
     _constructionCost:
     - _resourceType: 1
@@ -24,7 +24,7 @@ MonoBehaviour:
     _buildingTemplate: {fileID: 5527367336661994744, guid: 0791058349e781141b19420cef4d57e8, type: 3}
   - _buildingType: 3
     _name: Barracks
-    _description: 
+    _description: Allows warrior, archer and ballista recruitment
     _sprite: {fileID: 21300000, guid: 5b0d848b2f32b794aa6992924a77f605, type: 3}
     _constructionCost:
     - _resourceType: 1
@@ -33,7 +33,7 @@ MonoBehaviour:
     _buildingTemplate: {fileID: 4814117991548696416, guid: a7b4a7287b87cd549b90a006ae626e97, type: 3}
   - _buildingType: 1
     _name: House
-    _description: 
+    _description: Increase population by 5
     _sprite: {fileID: 21300000, guid: d7c385c01bbdc174db22b4d2f258101f, type: 3}
     _constructionCost:
     - _resourceType: 1
@@ -42,7 +42,7 @@ MonoBehaviour:
     _buildingTemplate: {fileID: 4218127384079284941, guid: 8a4de7f7f12cdb3469b3cf255e900852, type: 3}
   - _buildingType: 2
     _name: Farm
-    _description: 
+    _description: Increase food production by 1
     _sprite: {fileID: 21300000, guid: 21f74393344d5f740bff61de6188fd3d, type: 3}
     _constructionCost:
     - _resourceType: 1
@@ -51,7 +51,7 @@ MonoBehaviour:
     _buildingTemplate: {fileID: 4064869704507561338, guid: 77f8ff13bbdeee445ab37ee85137f589, type: 3}
   - _buildingType: 4
     _name: Tower
-    _description: 
+    _description: Attacks nearby enemy units
     _sprite: {fileID: 21300000, guid: eec1330767c2ba940a5442a34898fa2a, type: 3}
     _constructionCost:
     - _resourceType: 1

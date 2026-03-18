@@ -44,6 +44,7 @@ namespace UI
         {
             _selectionActionsController.CostPopUpView.Enable();
             _selectionActionsController.CostPopUpView.SetTitleText(popUpPayload.Name);
+            _selectionActionsController.CostPopUpView.SetDescription(popUpPayload.Description);
             _selectionActionsController.CostPopUpView.SetCostTexts(popUpPayload.ResourceCost);
         }
 

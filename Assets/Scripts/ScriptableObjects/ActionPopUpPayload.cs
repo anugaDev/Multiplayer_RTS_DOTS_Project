@@ -9,15 +9,18 @@ namespace ScriptableObjects
 
         private List<ResourceCostEntity> _resourceCost;
 
-        private float _timeRequired;
-        
+        private string _description;
+
         public List<ResourceCostEntity> ResourceCost => _resourceCost;
         
         public string Name => _name;
+        
+        public string Description => _description;
 
-        public ActionPopUpPayload(string name, List<ResourceCostEntity> resourceCost)
+        public ActionPopUpPayload(string name, string description, List<ResourceCostEntity> resourceCost)
         {
             _name = name;
+            _description = description;
             _resourceCost = resourceCost;
         }
     }

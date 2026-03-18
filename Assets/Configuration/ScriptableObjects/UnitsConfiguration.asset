@@ -17,7 +17,7 @@ MonoBehaviour:
     _unitPrefab: {fileID: 2147052715152915695, guid: b8d1ae59808dec347b85babe13491b5c, type: 3}
     _name: Worker
     _sprite: {fileID: 21300000, guid: 9b8cec15cc15651438d6a3052159efbc, type: 3}
-    _description: 
+    _description: Collects resources and constructs buildings
     _recruitmentTime: 10
     _recruitmentCost:
     - _resourceType: 3
@@ -28,7 +28,7 @@ MonoBehaviour:
     _unitPrefab: {fileID: 2147052715152915695, guid: be9b4c5d9a5e81e4582b59a3a48030e9, type: 3}
     _name: Ballista
     _sprite: {fileID: 21300000, guid: 719aaaf8bbbcc8345a0c3a49e781699f, type: 3}
-    _description: 
+    _description: Strong but slow ranged attack
     _recruitmentTime: 30
     _recruitmentCost:
     - _resourceType: 3
@@ -39,7 +39,7 @@ MonoBehaviour:
     _unitPrefab: {fileID: 2147052715152915695, guid: 864df9276f1064b478a17929ee88c6d4, type: 3}
     _name: Warrior
     _sprite: {fileID: 21300000, guid: c3f234322bbd080428d2a831e4b3ece8, type: 3}
-    _description: 
+    _description: Strong and cheap melee unit
     _recruitmentTime: 5
     _recruitmentCost:
     - _resourceType: 3
@@ -50,7 +50,7 @@ MonoBehaviour:
     _unitPrefab: {fileID: 2147052715152915695, guid: 4a55c73e8c99c8a4c98d995f59a9a91b, type: 3}
     _name: Archer
     _sprite: {fileID: 21300000, guid: 5583e187f0ab38543aaa4b0d64e8c66c, type: 3}
-    _description: 
+    _description: Weak but cheap ranged unit
     _recruitmentTime: 15
     _recruitmentCost:
     - _resourceType: 3

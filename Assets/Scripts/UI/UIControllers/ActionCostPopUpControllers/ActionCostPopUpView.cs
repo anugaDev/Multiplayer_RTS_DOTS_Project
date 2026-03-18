@@ -16,6 +16,9 @@ public class ActionCostPopUpView : MonoBehaviour
 
     [SerializeField] 
     private TextMeshProUGUI _titleText;
+    
+    [SerializeField] 
+    private TextMeshProUGUI _descriptionText;
 
     [SerializeField]
     private List<ResourcePanelCostController>  _resourceCostControllers; 
@@ -25,6 +28,11 @@ public class ActionCostPopUpView : MonoBehaviour
     public void SetTitleText(string title)
     {
         _titleText.text = title;
+    }
+
+    public void SetDescription(string description)
+    {
+        _descriptionText.text = description;
     }
 
     public void Enable()
