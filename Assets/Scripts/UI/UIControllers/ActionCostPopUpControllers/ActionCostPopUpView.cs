@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using GatherableResources;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
@@ -16,13 +18,9 @@ public class ActionCostPopUpView : MonoBehaviour
     private TextMeshProUGUI _titleText;
 
     [SerializeField]
-    private ResourcePanelCostController _foodController; 
+    private List<ResourcePanelCostController>  _resourceCostControllers; 
 
-    [SerializeField]
-    private ResourcePanelCostController _woodcontroller; 
-
-    [SerializeField]
-    private ResourcePanelCostController _populationController;
+    private bool _isEnabled;
 
     public void SetTitleText(string title)
     {
@@ -31,11 +29,14 @@ public class ActionCostPopUpView : MonoBehaviour
 
     public void Enable()
     {
+        _isEnabled = true;
         _gameObject.SetActive(true);
+        SetPosition(Input.mousePosition);
     }
 
     public void Disable()
     {
+        _isEnabled = false;
         _gameObject.SetActive(false);
     }
 
@@ -44,10 +45,44 @@ public class ActionCostPopUpView : MonoBehaviour
         _rectTransform.anchoredPosition = new Vector2(position.x, position.y);
     }
     
-    public void SetCostTexts(string food, string wood, string population)
+    public void SetCostTexts(List<ResourceCostEntity> resourceCost)
     {
-        _foodController.SetText(food);
-        _woodcontroller.SetText(wood);
-        _populationController.SetText(population);
+        foreach (ResourcePanelCostController costController in _resourceCostControllers)
+        {
+            SetResourceText(resourceCost, costController);
+        }
+    }
+
+    private void SetResourceText(List<ResourceCostEntity> resourceCost, ResourcePanelCostController costController)
+    {
+        if (!resourceCost.Exists(IsSameResource(costController)))
+        {
+            costController.Disable();
+            return;
+        }
+
+        costController.Enable();
+        ResourceCostEntity resourceCostEntity = resourceCost.Find(IsSameResource(costController));
+        costController.SetText(resourceCostEntity.Cost.ToString());
+    }
+
+    private Predicate<ResourceCostEntity> IsSameResource(ResourcePanelCostController costController)
+    {
+        return resourceCost => resourceCost.ResourceType == costController.ResourceType;
+    }
+
+    private void FixedUpdate()
+    {
+        UpdatePosition();
+    }
+
+    private void UpdatePosition()
+    {
+        if (!_isEnabled)
+        {
+            return;
+        }
+        
+        SetPosition(Input.mousePosition);
     }
 }

@@ -1,14 +1,14 @@
 using System;
 using Buildings;
+using ScriptableObjects;
 using TMPro;
-using Types;
-using Unity.Entities;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace UI.UIControllers
 {
-    public class ActionButtonController : MonoBehaviour
+    public class ActionButtonController : MonoBehaviour, IPointerEnterHandler,  IPointerExitHandler
     {
         [SerializeField]
         private Button _button;
@@ -30,16 +30,23 @@ namespace UI.UIControllers
 
         [SerializeField]
         private Color _disabledColor;
-
-        public Action<SetPlayerUIActionComponent> OnClick;
         
         private SetPlayerUIActionComponent _componentData;
 
-        public void Initialize(SetPlayerUIActionComponent componentData, string elementName, Sprite elementSprite)
+        public Action<SetPlayerUIActionComponent> OnClick;
+        
+        public Action<ActionPopUpPayload> OnEnter;
+        
+        public Action OnExit;
+        
+        private ActionPopUpPayload _popUpPayload;
+
+        public void Initialize(SetPlayerUIActionComponent componentData, ActionPopUpPayload popupPayload, Sprite image)
         {
             _componentData = componentData;
-            _text.text = elementName;
-            _displayImage.sprite = elementSprite;
+            _text.text = popupPayload.Name;
+            _displayImage.sprite = image;
+            _popUpPayload = popupPayload;
             _button.onClick.AddListener(SendAction);
         }
 
@@ -56,6 +63,16 @@ namespace UI.UIControllers
         private void SendAction()
         {
             OnClick.Invoke(_componentData);
+        }
+        
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            OnEnter?.Invoke(_popUpPayload);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            OnExit?.Invoke();
         }
 
         private void OnDestroy()
@@ -81,7 +98,6 @@ namespace UI.UIControllers
 
         public void Disable()
         {
-            _button.interactable = false;
             _feedbackImage.color = _disabledColor;
         }
     }

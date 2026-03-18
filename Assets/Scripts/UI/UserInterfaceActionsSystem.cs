@@ -28,9 +28,23 @@ namespace UI
         {
             _selectionActionsController = UserInterfaceController.Instance.SelectionActionsDisplayerController;
             _selectionActionsController.OnActionSelected += SetPlayerUIActionComponent;
+            _selectionActionsController.OnActionEnter += SetActonPopUpEnabled;
+            _selectionActionsController.OnActionExit += SetActionPopUpDisabled;
             SetBuildingActions();
             SetRecruitmentActions();
             base.OnStartRunning();
+        }
+
+        private void SetActionPopUpDisabled()
+        {
+            _selectionActionsController.CostPopUpView.Disable();
+        }
+
+        private void SetActonPopUpEnabled(ActionPopUpPayload popUpPayload)
+        {
+            _selectionActionsController.CostPopUpView.Enable();
+            _selectionActionsController.CostPopUpView.SetTitleText(popUpPayload.Name);
+            _selectionActionsController.CostPopUpView.SetCostTexts(popUpPayload.ResourceCost);
         }
 
         private void SetRecruitmentActions()

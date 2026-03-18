@@ -44,5 +44,10 @@ namespace ScriptableObjects
         public float RecruitmentTime => _recruitmentTime;
 
         public List<ResourceCostEntity> RecruitmentCost => _recruitmentCost;
+
+        public ActionPopUpPayload GetActionPopUpPayload()
+        {
+            return new ActionPopUpPayload(_name, _recruitmentCost);
+        }
     }
 }

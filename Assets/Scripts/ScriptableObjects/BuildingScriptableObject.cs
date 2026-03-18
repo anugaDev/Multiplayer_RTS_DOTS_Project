@@ -44,5 +44,10 @@ namespace ScriptableObjects
         public List<ResourceCostEntity> ConstructionCost => _constructionCost;
 
         public BuildingView BuildingTemplate => _buildingTemplate;
+
+        public ActionPopUpPayload GetActionPopUpPayload()
+        {
+            return new ActionPopUpPayload(_name, _constructionCost);
+        }
     }
 }
