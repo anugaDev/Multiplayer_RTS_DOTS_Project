@@ -42,12 +42,12 @@ namespace Units.Worker
 
             EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
 
-            foreach ((RefRW<LocalTransform>                      workerTransform,
-                      RefRO<WorkerStoringTagComponent>           storingTag,
-                      RefRO<UnitStateComponent>                  unitState,
+            foreach ((RefRW<LocalTransform> workerTransform,
+                      RefRO<WorkerStoringTagComponent> storingTag,
+                      RefRO<UnitStateComponent> unitState,
                       RefRW<CurrentWorkerResourceQuantityComponent> workerResource,
-                      RefRO<GhostOwner>                          workerOwner,
-                      Entity                                     workerEntity)
+                      RefRO<GhostOwner> workerOwner,
+                      Entity workerEntity)
                      in SystemAPI.Query<RefRW<LocalTransform>,
                                         RefRO<WorkerStoringTagComponent>,
                                         RefRO<UnitStateComponent>,
@@ -138,11 +138,11 @@ namespace Units.Worker
 
             ecb.SetComponent(workerEntity, new SetServerStateTargetComponent
             {
-                TargetEntity      = targetEntity,
-                TargetPosition    = targetTransform.Position,
+                TargetEntity  = targetEntity,
+                TargetPosition = targetTransform.Position,
                 IsFollowingTarget = true,
-                StoppingDistance  = 2.0f,
-                TargetVersion     = currentVersion + 1
+                StoppingDistance = 2.0f,
+                TargetVersion = currentVersion + 1
             });
         }
 
@@ -187,14 +187,10 @@ namespace Units.Worker
             Entity nearest = Entity.Null;
             float closestDistSq = float.MaxValue;
 
-            foreach ((RefRO<LocalTransform> resTransform,
-                      RefRO<ResourceTypeComponent> resType,
-                      RefRO<CurrentResourceQuantityComponent> resQty,
-                      Entity resEntity)
-                     in SystemAPI.Query<RefRO<LocalTransform>,
-                                       RefRO<ResourceTypeComponent>,
-                                       RefRO<CurrentResourceQuantityComponent>>()
-                         .WithEntityAccess())
+            foreach ((RefRO<LocalTransform> resTransform, RefRO<ResourceTypeComponent> resType, 
+                         RefRO<CurrentResourceQuantityComponent> resQty, Entity resEntity)
+                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<ResourceTypeComponent>,
+                             RefRO<CurrentResourceQuantityComponent>>() .WithEntityAccess())
             {
                 if (resType.ValueRO.Type != type || resQty.ValueRO.Value <= 0)
                     continue;

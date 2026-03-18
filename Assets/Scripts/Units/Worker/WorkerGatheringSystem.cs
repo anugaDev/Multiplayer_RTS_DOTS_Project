@@ -67,9 +67,7 @@ namespace Units.Worker
                                         RefRO<ElementTeamComponent>>()
                          .WithAll<Simulate, UnitTagComponent>()
                          .WithEntityAccess())
-            {
-                UnityEngine.Debug.Log($"[WGS] Worker {workerEntity.Index} has GatherTag. State={unitState.ValueRO.State}, Resource={gatheringTag.ValueRO.ResourceEntity.Index}");
-
+            { 
                 if (unitState.ValueRO.State != UnitState.Acting)
                     continue;
 
@@ -92,7 +90,6 @@ namespace Units.Worker
                 !_resourceQuantityLookup.TryGetComponent(resourceEntity, out CurrentResourceQuantityComponent resourceQuantity) ||
                 resourceQuantity.Value <= 0)
             {
-                UnityEngine.Debug.Log($"[WGS] Resource {resourceEntity.Index} invalid/depleted — removing tag from {workerEntity.Index}");
                 ecb.RemoveComponent<WorkerGatheringTagComponent>(workerEntity);
 
                 if (workerResource.Value > 0)
@@ -112,7 +109,6 @@ namespace Units.Worker
                 return;
 
             float distanceSq = math.distancesq(workerTransform.Position, resourceTransform.Position);
-            UnityEngine.Debug.Log($"[WGS] Worker {workerEntity.Index} dist²={distanceSq:F2} to resource {resourceEntity.Index} (threshold²={GATHERING_DISTANCE_THRESHOLD * GATHERING_DISTANCE_THRESHOLD})");
             if (distanceSq > GATHERING_DISTANCE_THRESHOLD * GATHERING_DISTANCE_THRESHOLD)
                 return;
 
