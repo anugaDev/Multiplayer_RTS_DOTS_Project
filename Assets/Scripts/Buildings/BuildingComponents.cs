@@ -14,6 +14,10 @@ namespace Buildings
     {
     }
 
+    public struct BuildingVisualsReadyTagComponent : IComponentData
+    {
+    }
+
     [GhostComponent(PrefabType = GhostPrefabType.AllPredicted)]
     public struct BuildingObstacleSizeComponent : IComponentData
     {

@@ -256,7 +256,6 @@ namespace UI
         {
             Entity selectedBuilding = _buildingTypesSelected.First(building => building.Value).Key.SelectedEntity;
 
-            // Hide actions if building is still under construction
             if (EntityManager.HasComponent<BuildingConstructionProgressComponent>(selectedBuilding))
             {
                 BuildingConstructionProgressComponent progress =
