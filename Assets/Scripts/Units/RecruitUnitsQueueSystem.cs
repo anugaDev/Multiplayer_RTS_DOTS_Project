@@ -82,8 +82,8 @@ namespace Units
             int serverWoodDrop = _previousServerWood - serverWood;
             int serverFoodDrop = _previousServerFood - serverFood;
             int serverPopGain  = serverPopulation - _previousServerPopulation;
-            if (serverWoodDrop > 0) _pendingWoodCost       = math.max(0, _pendingWoodCost       - serverWoodDrop);
-            if (serverFoodDrop > 0) _pendingFoodCost       = math.max(0, _pendingFoodCost       - serverFoodDrop);
+            if (serverWoodDrop > 0) _pendingWoodCost = math.max(0, _pendingWoodCost       - serverWoodDrop);
+            if (serverFoodDrop > 0) _pendingFoodCost = math.max(0, _pendingFoodCost       - serverFoodDrop);
             if (serverPopGain  > 0) _pendingPopulationCost = math.max(0, _pendingPopulationCost - serverPopGain);
             _previousServerWood = serverWood;
             _previousServerFood  = serverFood;
