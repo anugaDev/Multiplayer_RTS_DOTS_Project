@@ -32,6 +32,13 @@ namespace Units
         
         private ElementResourceCostPolicy _elementResourceCostPolicy;
 
+        private int _pendingWoodCost;
+        private int _pendingFoodCost;
+        private int _pendingPopulationCost;
+        private int _previousServerWood;
+        private int _previousServerFood;
+        private int _previousServerPopulation;
+
         protected override void OnCreate()
         {
             RequireForUpdate<UnitsConfigurationComponent>();
@@ -47,6 +54,10 @@ namespace Units
             _recruitmentList = new List<RecruitmentEntity>();
             _recuritmentQueue = new List<RecruitmentEntity>();
             _endRecruitmentUnits = new List<RecruitmentEntity>();
+            Entity playerEntity = SystemAPI.GetSingletonEntity<PlayerTagComponent>();
+            _previousServerWood = SystemAPI.GetComponent<CurrentWoodComponent>(playerEntity).Value;
+            _previousServerFood = SystemAPI.GetComponent<CurrentFoodComponent>(playerEntity).Value;
+            _previousServerPopulation = SystemAPI.GetComponent<CurrentPopulationComponent>(playerEntity).CurrentPopulation;
             base.OnStartRunning();
         }
 
@@ -63,12 +74,24 @@ namespace Units
 
         private void UpdatePolicy(Entity playerEntity)
         {
-            int currentWood = SystemAPI.GetComponent<CurrentWoodComponent>(playerEntity).Value;
-            int currentFood = SystemAPI.GetComponent<CurrentFoodComponent>(playerEntity).Value;
+            int serverWood = SystemAPI.GetComponent<CurrentWoodComponent>(playerEntity).Value;
+            int serverFood = SystemAPI.GetComponent<CurrentFoodComponent>(playerEntity).Value;
             CurrentPopulationComponent populationComponent = SystemAPI.GetComponent<CurrentPopulationComponent>(playerEntity);
-            int currentPopulation = populationComponent.CurrentPopulation;
+            int serverPopulation = populationComponent.CurrentPopulation;
             int maxPopulation = populationComponent.MaxPopulation;
-            _elementResourceCostPolicy.UpdateCost(currentWood, currentFood, currentPopulation, maxPopulation);
+            int serverWoodDrop = _previousServerWood - serverWood;
+            int serverFoodDrop = _previousServerFood - serverFood;
+            int serverPopGain  = serverPopulation - _previousServerPopulation;
+            if (serverWoodDrop > 0) _pendingWoodCost       = math.max(0, _pendingWoodCost       - serverWoodDrop);
+            if (serverFoodDrop > 0) _pendingFoodCost       = math.max(0, _pendingFoodCost       - serverFoodDrop);
+            if (serverPopGain  > 0) _pendingPopulationCost = math.max(0, _pendingPopulationCost - serverPopGain);
+            _previousServerWood = serverWood;
+            _previousServerFood  = serverFood;
+            _previousServerPopulation = serverPopulation;
+            int effectiveWood = math.max(0, serverWood - _pendingWoodCost);
+            int effectiveFood = math.max(0, serverFood - _pendingFoodCost);
+            int effectivePopulation = serverPopulation + _pendingPopulationCost;
+            _elementResourceCostPolicy.UpdateCost(effectiveWood, effectiveFood, effectivePopulation, maxPopulation);
         }
 
         private void UpdateUnitRecruitment()
@@ -133,8 +156,15 @@ namespace Units
 
         private void SetUpdatedCosts(UnitType unitType)
         {
-            _unitsConfiguration[unitType].RecruitmentCost
-                .ForEach(_elementResourceCostPolicy.AddCost);
+            foreach (ResourceCostEntity cost in _unitsConfiguration[unitType].RecruitmentCost)
+            {
+                switch (cost.ResourceType)
+                {
+                    case ResourceType.Wood: _pendingWoodCost += cost.Cost; break;
+                    case ResourceType.Food: _pendingFoodCost += cost.Cost; break;
+                    case ResourceType.Population: _pendingPopulationCost += cost.Cost; break;
+                }
+            }
         }
 
         private bool IsRecruitmentAvailable(UnitType unitType)
@@ -205,7 +235,6 @@ namespace Units
         {
             SetRecruitmentEntityEnd(recruitmentEntity);
             LocalTransform buildingTransform = EntityManager.GetComponentData<LocalTransform>(building);
-
             SpawnUnitCommand buildingCommand = GetSpawnUnitCommand(buildingTransform.Position, unit);
             Entity entity = SystemAPI.GetSingletonEntity<PlayerTagComponent>();
             DynamicBuffer<SpawnUnitCommand> spawnUnitCommands = SystemAPI.GetBuffer<SpawnUnitCommand>(entity);
@@ -267,7 +296,6 @@ namespace Units
 
         private static int GetCommandId(float3 buildingPosition, UnitType unit, NetworkTick tick)
         {
-            // Generate unique command ID using tick, unit type, and building position hash
             int positionHash = (int)(buildingPosition.x * 1000 + buildingPosition.z * 100);
             int commandId = (int)tick.TickIndexForValidTick * 10000 + (int)unit * 100 + (positionHash % 100);
             return commandId;
