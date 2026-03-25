@@ -25,7 +25,7 @@ namespace UI.UIControllers
         
         public Action<SetPlayerUIActionComponent> OnActionSelected;
 
-        public Action<ActionPopUpPayload, float3> OnActionEnter;
+        public Action<ActionPopUpPayload, Vector2> OnActionEnter;
 
         public Action OnActionExit;
 
@@ -53,7 +53,7 @@ namespace UI.UIControllers
             OnActionExit.Invoke();
         }
 
-        private void EnablePopUp(ActionPopUpPayload component, float3 position)
+        private void EnablePopUp(ActionPopUpPayload component, Vector2 position)
         {
             OnActionEnter.Invoke(component, position);
         }

@@ -50,15 +50,9 @@ namespace Units.MovementSystems
                 if (inputTarget.ValueRO.TargetVersion <= serverTarget.ValueRO.TargetVersion)
                     continue;
 
-                // Remove the old attack tag. Do NOT update serverTarget.TargetVersion here —
-                // the second loop must process this same command next frame (once the ECB
-                // has physically removed the tag and WithNone<UnitAttackingTagComponent>
-                // will match the entity again). Consuming the version here would silently
-                // drop the incoming attack command.
                 ecb.RemoveComponent<UnitAttackingTagComponent>(entity);
             }
 
-            // Second loop: evaluate whether to start an attack
             foreach ((RefRO<UnitStateComponent>            unitState,
                       RefRO<SetInputStateTargetComponent>  inputTarget,
                       RefRW<SetServerStateTargetComponent> serverTarget,
@@ -97,10 +91,6 @@ namespace Units.MovementSystems
                     continue;
                 }
 
-                // Check whether the target is already within attack range right now.
-                // If so, start attacking immediately (even if the unit is still moving).
-                // If not, require the unit to be Idle first (UnitAttackSystem will close
-                // the distance while UnitAttackingTagComponent is active).
                 bool targetInRange = false;
                 if (_transformLookup.TryGetComponent(target, out LocalTransform targetTransform))
                 {
@@ -117,10 +107,6 @@ namespace Units.MovementSystems
 
                 ecb.AddComponent(entity, new UnitAttackingTagComponent { TargetEntity = target });
 
-                // If the unit was moving and the target is already in range, clear its
-                // current path so it stops in place and attacks immediately.
-                // (The client's NavMeshPathfindingSystem will zero out waypoints the next
-                // tick when it sees HasPath=false, stopping ServerUnitMoveSystem.)
                 if (targetInRange && unitState.ValueRO.State == UnitState.Moving)
                 {
                     ecb.SetComponent(entity, new PathComponent

@@ -39,7 +39,6 @@ public class ActionCostPopUpView : MonoBehaviour
     {
         _isEnabled = true;
         _gameObject.SetActive(true);
-        SetPosition(Input.mousePosition);
     }
 
     public void Disable()
@@ -48,9 +47,14 @@ public class ActionCostPopUpView : MonoBehaviour
         _gameObject.SetActive(false);
     }
 
-    public void SetPosition(float3 position)
+    public void SetPosition(Vector2 screenPosition)
     {
-        _rectTransform.anchoredPosition = new Vector2(position.x, position.y);
+        RectTransform parentRect = (RectTransform)_rectTransform.parent;
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                parentRect, screenPosition, null, out Vector2 localPoint))
+        {
+            _rectTransform.anchoredPosition = localPoint;
+        }
     }
     
     public void SetCostTexts(List<ResourceCostEntity> resourceCost)

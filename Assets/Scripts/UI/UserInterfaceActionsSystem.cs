@@ -7,6 +7,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UI
 {
@@ -41,11 +42,11 @@ namespace UI
             _selectionActionsController.CostPopUpView.Disable();
         }
 
-        private void SetActonPopUpEnabled(ActionPopUpPayload popUpPayload, float3 position)
+        private void SetActonPopUpEnabled(ActionPopUpPayload popUpPayload, Vector2 screenPosition)
         {
             ActionCostPopUpView popUpView = _selectionActionsController.CostPopUpView;
             popUpView.Enable();
-            popUpView.SetPosition(position);
+            popUpView.SetPosition(screenPosition);
             popUpView.SetTitleText(popUpPayload.Name);
             popUpView.SetDescription(popUpPayload.Description);
             popUpView.SetCostTexts(popUpPayload.ResourceCost);

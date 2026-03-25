@@ -11,6 +11,8 @@ namespace UI.UIControllers
 {
     public class ActionButtonController : MonoBehaviour, IPointerEnterHandler,  IPointerExitHandler
     {
+        private const int TOP_RIGHT_CORNER_INDEX = 2;
+
         [SerializeField]
         private Button _button;
 
@@ -39,7 +41,7 @@ namespace UI.UIControllers
 
         public Action<SetPlayerUIActionComponent> OnClick;
         
-        public Action<ActionPopUpPayload, float3> OnEnter;
+        public Action<ActionPopUpPayload, Vector2> OnEnter;
         
         public Action OnExit;
         
@@ -71,7 +73,10 @@ namespace UI.UIControllers
         
         public void OnPointerEnter(PointerEventData eventData)
         {
-            OnEnter?.Invoke(_popUpPayload, _transform.position);
+            Vector3[] corners = new Vector3[4];
+            _transform.GetWorldCorners(corners);
+            Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, corners[TOP_RIGHT_CORNER_INDEX]);
+            OnEnter?.Invoke(_popUpPayload, screenPos);
         }
 
         public void OnPointerExit(PointerEventData eventData)

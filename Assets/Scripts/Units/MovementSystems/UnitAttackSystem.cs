@@ -15,7 +15,9 @@ namespace Units.MovementSystems
     {
         private const float DEFAULT_ATTACK_RANGE = 4.0f;
 
-        private const int   DEFAULT_DAMAGE       = 10;
+        private const float RANGE_STOP_FACTOR = 0.9f;
+
+        private const int   DEFAULT_DAMAGE = 10;
 
         private ComponentLookup<UnitAttackProperties> _attackPropsLookup;
 
@@ -108,22 +110,7 @@ namespace Units.MovementSystems
 
             if (distanceSq > rangeSq)
             {
-                if (moveSpeed > 0f)
-                {
-                    float distance = math.sqrt(distanceSq);
-                    float3 dir    = toTarget / distance;
-                    // Stop at 90 % of attackRange so the unit is firmly inside
-                    // the attack zone — stopping exactly at the boundary causes
-                    // floating-point flicker where distanceSq ≈ rangeSq and the
-                    // attack intermittently fails to trigger.
-                    const float RANGE_STOP_FACTOR = 0.9f;
-                    float  step   = math.min(moveSpeed * deltaTime, distance - attackRange * RANGE_STOP_FACTOR);
-                    if (step > 0f)
-                    {
-                        unitTransform.Position += dir * step;
-                        unitTransform.Rotation  = quaternion.LookRotationSafe(dir, math.up());
-                    }
-                }
+                SetMovementStep(ref unitTransform, attackRange, moveSpeed, deltaTime, distanceSq, toTarget);
                 return;
             }
 
@@ -140,6 +127,32 @@ namespace Units.MovementSystems
             if (tickDamage <= 0) tickDamage = 1;
 
             _damageBufferLookup[target].Add(new DamageBufferElement { Value = tickDamage });
+        }
+
+        private void SetMovementStep(ref LocalTransform unitTransform, float attackRange, float moveSpeed,
+            float deltaTime, float distanceSq, float3 toTarget)
+        {
+            if (!(moveSpeed > 0f))
+            {
+                return;
+            }
+
+            float distance = math.sqrt(distanceSq);
+            float3 dir = toTarget / distance;
+            float step = math.min(moveSpeed * deltaTime, distance - attackRange * RANGE_STOP_FACTOR);
+
+            SetUnitTransform(ref unitTransform, step, dir);
+        }
+
+        private void SetUnitTransform(ref LocalTransform unitTransform, float step, float3 dir)
+        {
+            if (!(step > 0f))
+            {
+                return;
+            }
+
+            unitTransform.Position += dir * step;
+            unitTransform.Rotation  = quaternion.LookRotationSafe(dir, math.up());
         }
     }
 }

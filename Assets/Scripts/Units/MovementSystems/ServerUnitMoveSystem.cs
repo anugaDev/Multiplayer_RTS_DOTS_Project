@@ -36,7 +36,7 @@ namespace Units.MovementSystems
                                        RefRW<PathComponent>,
                                        RefRO<UnitMoveSpeedComponent>>()
                          .WithAll<Simulate, UnitTagComponent>()
-                         .WithNone<UnitAttackingTagComponent>())  // UnitAttackSystem handles movement for attacking units
+                         .WithNone<UnitAttackingTagComponent>())
             {
                 MoveUnit(transform, waypointsInput, pathComponent, moveSpeed, deltaTime);
             }
