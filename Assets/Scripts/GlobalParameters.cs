@@ -10,5 +10,5 @@ public static class GlobalParameters
 
     public const int GAME_SCENE_INDEX = 1;
     
-    public const int MENU_SCENE_INDEX = 1;
+    public const int MENU_SCENE_INDEX = 0;
 }
