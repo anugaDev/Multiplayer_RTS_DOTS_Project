@@ -11,14 +11,27 @@ namespace Combat
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public partial struct VictoryConditionSystem : ISystem
     {
+        private EntityQuery _destroyQuery;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PlayerTagComponent>();
+            _destroyQuery = SystemAPI.QueryBuilder().WithAll<DestroyEntityTag>().Build();
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            if (SystemAPI.HasSingleton<GameOverTag>())
+            bool isGameOver = false;
+            foreach (RefRO<GameOverTag> tag in SystemAPI.Query<RefRO<GameOverTag>>().WithAll<PlayerTagComponent>())
+            {
+                if (tag.ValueRO.WinnerTeam != TeamType.None)
+                {
+                    isGameOver = true;
+                    break;
+                }
+            }
+
+            if (isGameOver)
                 return;
 
             foreach (RefRO<PlayerManualExitTag> exitTag in
@@ -26,65 +39,116 @@ namespace Combat
             {
                 TeamType exitingTeam = exitTag.ValueRO.ExitingTeam;
                 TeamType winnerTeam  = exitingTeam == TeamType.Blue ? TeamType.Red : TeamType.Blue;
-                CreateGameOverSingleton(ref state, winnerTeam);
+                TriggerGameOver(ref state, winnerTeam);
                 return;
             }
 
-            if (!SystemAPI.HasSingleton<DestroyEntityTag>())
-                return;
+            if (!_destroyQuery.IsEmpty)
+            {
+                if (!SystemAPI.HasSingleton<CheckVictoryDelay>())
+                {
+                    EntityCommandBuffer ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+                    Entity delayEntity = ecb.CreateEntity();
+                    ecb.AddComponent(delayEntity, new CheckVictoryDelay { FramesRemaining = 1 });
+                    ecb.Playback(state.EntityManager);
+                    ecb.Dispose();
+                }
+            }
 
-            bool blueHasWorker     = false;
-            bool redHasWorker      = false;
+            if (SystemAPI.HasSingleton<CheckVictoryDelay>())
+            {
+                Entity delayEntity = SystemAPI.GetSingletonEntity<CheckVictoryDelay>();
+                CheckVictoryDelay delay = SystemAPI.GetComponent<CheckVictoryDelay>(delayEntity);
+
+                if (delay.FramesRemaining > 0)
+                {
+                    delay.FramesRemaining--;
+                    SystemAPI.SetComponent(delayEntity, delay);
+                    return;
+                }
+
+                EntityCommandBuffer checkEcb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
+                checkEcb.DestroyEntity(delayEntity);
+                checkEcb.Playback(state.EntityManager);
+                checkEcb.Dispose();
+
+                PerformVictoryCheck(ref state);
+            }
+        }
+
+        private void PerformVictoryCheck(ref SystemState state)
+        {
+            bool blueHasWorker = false;
+            bool redHasWorker = false;
             bool blueHasTownCenter = false;
-            bool redHasTownCenter  = false;
+            bool redHasTownCenter = false;
 
-            foreach ((RefRO<UnitTypeComponent> unitType, RefRO<ElementTeamComponent> team) in
-                     SystemAPI.Query<RefRO<UnitTypeComponent>, RefRO<ElementTeamComponent>>()
+            foreach ((RefRO<UnitTypeComponent> unitType, RefRO<ElementTeamComponent> team, RefRO<CurrentHitPointsComponent> hp) in
+                     SystemAPI.Query<RefRO<UnitTypeComponent>, RefRO<ElementTeamComponent>, RefRO<CurrentHitPointsComponent>>()
+                              .WithAll<Simulate>()
                               .WithNone<DestroyEntityTag>())
             {
-                if (unitType.ValueRO.Type != UnitType.Worker)
+                if (unitType.ValueRO.Type != UnitType.Worker || hp.ValueRO.Value <= 0)
+                {
                     continue;
+                }
 
                 if (team.ValueRO.Team == TeamType.Blue)
+                {
                     blueHasWorker = true;
+                }
                 else if (team.ValueRO.Team == TeamType.Red)
+                {
                     redHasWorker = true;
+                }
             }
 
-            foreach ((RefRO<BuildingTypeComponent> buildingType, RefRO<ElementTeamComponent> team) in
-                     SystemAPI.Query<RefRO<BuildingTypeComponent>, RefRO<ElementTeamComponent>>()
+            foreach ((RefRO<BuildingTypeComponent> buildingType, RefRO<ElementTeamComponent> team, RefRO<CurrentHitPointsComponent> hp) in
+                     SystemAPI.Query<RefRO<BuildingTypeComponent>, RefRO<ElementTeamComponent>, RefRO<CurrentHitPointsComponent>>()
+                              .WithAll<Simulate>()
                               .WithNone<DestroyEntityTag>())
             {
-                if (buildingType.ValueRO.Type != BuildingType.Center)
+                if (buildingType.ValueRO.Type != BuildingType.Center || hp.ValueRO.Value <= 0)
+                {
                     continue;
+                }
 
                 if (team.ValueRO.Team == TeamType.Blue)
+                {
                     blueHasTownCenter = true;
+                }
                 else if (team.ValueRO.Team == TeamType.Red)
+                {
                     redHasTownCenter = true;
+                }
             }
 
             TeamType eliminatedTeam = TeamType.None;
 
             if (!blueHasWorker && !blueHasTownCenter)
+            {
                 eliminatedTeam = TeamType.Blue;
+            }
             else if (!redHasWorker && !redHasTownCenter)
+            {
                 eliminatedTeam = TeamType.Red;
+            }
 
             if (eliminatedTeam == TeamType.None)
+            {
                 return;
+            }
 
             TeamType winner = eliminatedTeam == TeamType.Blue ? TeamType.Red : TeamType.Blue;
-            CreateGameOverSingleton(ref state, winner);
+            TriggerGameOver(ref state, winner);
         }
 
-        private void CreateGameOverSingleton(ref SystemState state, TeamType winnerTeam)
+        private void TriggerGameOver(ref SystemState state, TeamType winnerTeam)
         {
-            EntityCommandBuffer ecb = new EntityCommandBuffer(Unity.Collections.Allocator.Temp);
-            Entity gameOverEntity   = ecb.CreateEntity();
-            ecb.AddComponent(gameOverEntity, new GameOverTag { WinnerTeam = winnerTeam });
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
+            foreach (RefRW<GameOverTag> gameOverTag in SystemAPI.Query<RefRW<GameOverTag>>().WithAll<PlayerTagComponent>())
+            {
+                gameOverTag.ValueRW.WinnerTeam = winnerTeam;
+            }
         }
     }
 }

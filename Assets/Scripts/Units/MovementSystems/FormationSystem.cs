@@ -160,8 +160,8 @@ namespace Units.MovementSystems
         private static float3 CalculateGridOffset(int index, int totalUnits)
         {
             int columns = (int)math.ceil(math.sqrt(totalUnits));
-            int row     = index / columns;
-            int col     = index % columns;
+            int row = index / columns;
+            int col = index % columns;
             int colCount = index < (totalUnits / columns) * columns ? columns
                          : totalUnits - (totalUnits / columns) * columns;
             colCount = math.max(colCount, 1);

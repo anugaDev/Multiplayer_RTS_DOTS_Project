@@ -44,6 +44,7 @@ namespace Player
                 AddComponent(entity, GetCurrentFoodComponent(playerAuthoring));
                 AddComponent(entity, GetCurrentPopulationComponent(playerAuthoring));
                 AddComponent(entity, new FoodGenerationComponent { FoodPerSecond = 0 });
+                AddComponent(entity, new Combat.GameOverTag { WinnerTeam = Types.TeamType.None });
             }
 
             private CurrentFoodComponent GetCurrentFoodComponent(PlayerAuthoring playerAuthoring)

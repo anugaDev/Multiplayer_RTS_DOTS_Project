@@ -13,23 +13,30 @@ namespace UI.UIControllers
 
         [Header("Labels")]
         [SerializeField] private TextMeshProUGUI _titleLabel;
+        
         [SerializeField] private TextMeshProUGUI _subtitleLabel;
 
         [Header("Button")]
         [SerializeField] private Button _mainButton;
+        
         [SerializeField] private TextMeshProUGUI _buttonLabel;
 
         [Header("Victory Config")]
         [SerializeField] private string _victoryTitle    = "VICTORY";
+        
         [SerializeField] private string _victorySubtitle = "You have conquered the battlefield!";
-        [SerializeField] private Color  _victoryColor    = new Color(1f, 0.85f, 0.1f);
+        
+        [SerializeField] private Color  _victoryColor = new Color(1f, 0.85f, 0.1f);
 
         [Header("Defeat Config")]
         [SerializeField] private string _defeatTitle    = "DEFEAT";
+       
         [SerializeField] private string _defeatSubtitle = "Your forces have been annihilated.";
-        [SerializeField] private Color  _defeatColor    = new Color(0.75f, 0.1f, 0.1f);
+        
+        [SerializeField] private Color  _defeatColor = new Color(0.75f, 0.1f, 0.1f);
 
         [Header("Button Text")]
+        
         [SerializeField] private string _buttonText = "Return to Menu";
 
         private void Awake()
@@ -87,7 +94,7 @@ namespace UI.UIControllers
 
         private void OnMainButtonClicked()
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(GlobalParameters.MENU_SCENE_INDEX);
         }
     }
 }

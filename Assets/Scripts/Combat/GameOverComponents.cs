@@ -9,4 +9,9 @@ namespace Combat
         [GhostField]
         public TeamType WinnerTeam;
     }
+
+    public struct CheckVictoryDelay : IComponentData
+    {
+        public int FramesRemaining;
+    }
 }

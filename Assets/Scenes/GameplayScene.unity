@@ -568,6 +568,35 @@ MonoBehaviour:
   _redTeamPosition: {x: 50, y: 0, z: 50}
   _blueTeamPosition: {x: -50, y: 0, z: -50}
   _spectatorPosition: {x: 0, y: 0, z: 0}
+--- !u!1 &417123895 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 968760173757377182, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
+  m_PrefabInstance: {fileID: 4754941142058381376}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &417123899
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 417123895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef3d1c16daf52b24ab63c4a478684bfe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rootPanel: {fileID: 645134794}
+  _titleLabel: {fileID: 2015085839}
+  _subtitleLabel: {fileID: 2015085839}
+  _mainButton: {fileID: 417168601}
+  _buttonLabel: {fileID: 377788845}
+  _victoryTitle: VICTORY
+  _victorySubtitle: You have conquered the battlefield!
+  _victoryColor: {r: 0.23516873, g: 1, b: 0.10196078, a: 1}
+  _defeatTitle: DEFEAT
+  _defeatSubtitle: Your forces have been annihilated.
+  _defeatColor: {r: 0.75, g: 0.1, b: 0.1, a: 1}
+  _buttonText: Return to Menu
 --- !u!1 &417168599
 GameObject:
   m_ObjectHideFlags: 0
@@ -1022,7 +1051,6 @@ GameObject:
   - component: {fileID: 645134795}
   - component: {fileID: 645134797}
   - component: {fileID: 645134796}
-  - component: {fileID: 645134798}
   m_Layer: 5
   m_Name: GameOverScreen
   m_TagString: Untagged
@@ -1090,30 +1118,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 645134794}
   m_CullTransparentMesh: 1
---- !u!114 &645134798
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 645134794}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef3d1c16daf52b24ab63c4a478684bfe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _rootPanel: {fileID: 645134794}
-  _titleLabel: {fileID: 2015085839}
-  _subtitleLabel: {fileID: 2015085839}
-  _mainButton: {fileID: 417168601}
-  _buttonLabel: {fileID: 377788845}
-  _victoryTitle: VICTORY
-  _victorySubtitle: You have conquered the battlefield!
-  _victoryColor: {r: 0.23516873, g: 1, b: 0.10196078, a: 1}
-  _defeatTitle: DEFEAT
-  _defeatSubtitle: Your forces have been annihilated.
-  _defeatColor: {r: 0.75, g: 0.1, b: 0.1, a: 1}
-  _buttonText: Return to Menu
 --- !u!1 &661518258
 GameObject:
   m_ObjectHideFlags: 3
@@ -3008,15 +3012,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1777717333972475094, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1777717333972475094, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1777717333972475094, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 150.00003
       objectReference: {fileID: 0}
     - target: {fileID: 1777717333972475094, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -3028,15 +3032,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5618923170715545945, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5618923170715545945, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5618923170715545945, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 150.00003
       objectReference: {fileID: 0}
     - target: {fileID: 5618923170715545945, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -3124,19 +3128,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7859703277186571816, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7859703277186571816, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7859703277186571816, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 150.00003
       objectReference: {fileID: 0}
     - target: {fileID: 7859703277186571816, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -50
       objectReference: {fileID: 0}
     - target: {fileID: 8885800398356158170, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_AnchorMax.y
@@ -3160,7 +3164,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7714103428398606499, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       insertIndex: -1
       addedObject: {fileID: 645134795}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 968760173757377182, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 417123899}
   m_SourcePrefab: {fileID: 100100000, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
 --- !u!1001 &7431874424970534843
 PrefabInstance:

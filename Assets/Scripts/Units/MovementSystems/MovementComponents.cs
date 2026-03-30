@@ -34,6 +34,4 @@ namespace Units.MovementSystems
 
         public NetworkTick Value;
     }
-    
-    public struct GameOverOnDestroyTag : IComponentData {}
 }

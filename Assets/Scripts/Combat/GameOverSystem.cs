@@ -12,7 +12,6 @@ namespace Combat
 
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<GameOverTag>();
             _gameOverHandled = false;
         }
 
@@ -21,29 +20,24 @@ namespace Combat
             if (_gameOverHandled)
                 return;
 
-            if (!SystemAPI.HasSingleton<GameOverTag>())
-                return;
-
-            GameOverTag gameOverTag = SystemAPI.GetSingleton<GameOverTag>();
-
-            TeamType localTeam = TeamType.None;
-            foreach (RefRO<UI.PlayerTeamComponent> playerTeam in
-                     SystemAPI.Query<RefRO<UI.PlayerTeamComponent>>()
+            foreach ((RefRO<GameOverTag> gameOverTag, RefRO<UI.PlayerTeamComponent> playerTeam) in
+                     SystemAPI.Query<RefRO<GameOverTag>, RefRO<UI.PlayerTeamComponent>>()
                               .WithAll<UI.PlayerTagComponent, ElementCommons.OwnerTagComponent>())
             {
-                localTeam = playerTeam.ValueRO.Team;
+                if (gameOverTag.ValueRO.WinnerTeam != TeamType.None)
+                {
+                    bool isVictory = playerTeam.ValueRO.Team == gameOverTag.ValueRO.WinnerTeam;
+
+                    GameOverScreenController screenController = GameOverScreenController.Instance;
+                    if (screenController != null)
+                    {
+                        screenController.Show(isVictory);
+                    }
+
+                    _gameOverHandled = true;
+                }
                 break;
             }
-
-            bool isVictory = (localTeam != TeamType.None) && (localTeam == gameOverTag.WinnerTeam);
-
-            GameOverScreenController screenController = GameOverScreenController.Instance;
-            if (screenController != null)
-            {
-                screenController.Show(isVictory);
-            }
-
-            _gameOverHandled = true;
         }
     }
 }
