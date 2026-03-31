@@ -863,7 +863,6 @@ MonoBehaviour:
   _defeatTitle: DEFEAT
   _defeatSubtitle: Your forces have been annihilated.
   _defeatColor: {r: 0.75, g: 0.1, b: 0.1, a: 1}
-  _buttonText: Return to Menu
 --- !u!114 &417123900
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3356,6 +3355,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -237.27063
       objectReference: {fileID: 0}
+    - target: {fileID: 6674512037587415992, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
+      propertyPath: m_text
+      value: End Game
+      objectReference: {fileID: 0}
     - target: {fileID: 6777782298794776541, guid: 7b26dfd24e40bd24eb879519f5f99274, type: 3}
       propertyPath: m_LocalPosition.z
       value: -64.817215
@@ -3764,6 +3767,10 @@ PrefabInstance:
       propertyPath: _cameraController
       value: 
       objectReference: {fileID: 404233602}
+    - target: {fileID: 6439846901369827055, guid: d4c6db27b7d2ad24ea782e526db3454f, type: 3}
+      propertyPath: _gameOverScreenController
+      value: 
+      objectReference: {fileID: 417123899}
     - target: {fileID: 6439846901369827055, guid: d4c6db27b7d2ad24ea782e526db3454f, type: 3}
       propertyPath: _resourcesPanelController
       value: 

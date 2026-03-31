@@ -28,7 +28,7 @@ namespace Combat
                 {
                     bool isVictory = playerTeam.ValueRO.Team == gameOverTag.ValueRO.WinnerTeam;
 
-                    GameOverScreenController screenController = GameOverScreenController.Instance;
+                    GameOverScreenController screenController = UserInterfaceController.Instance.GameOverScreenController;
                     if (screenController != null)
                     {
                         screenController.Show(isVictory);

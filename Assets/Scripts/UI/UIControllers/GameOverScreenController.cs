@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -9,8 +10,6 @@ namespace UI.UIControllers
 {
     public class GameOverScreenController : MonoBehaviour
     {
-        public static GameOverScreenController Instance { get; private set; }
-
         [Header("Panel")]
         [SerializeField] private GameObject _rootPanel;
 
@@ -25,50 +24,32 @@ namespace UI.UIControllers
         [SerializeField] private TextMeshProUGUI _buttonLabel;
 
         [Header("Victory Config")]
-        [SerializeField] private string _victoryTitle    = "VICTORY";
+        [SerializeField] private string _victoryTitle;
         
-        [SerializeField] private string _victorySubtitle = "You have conquered the battlefield!";
+        [SerializeField] private string _victorySubtitle;
         
-        [SerializeField] private Color  _victoryColor = new Color(1f, 0.85f, 0.1f);
+        [SerializeField] private Color  _victoryColor;
 
         [Header("Defeat Config")]
-        [SerializeField] private string _defeatTitle    = "DEFEAT";
+        [SerializeField] private string _defeatTitle;
        
-        [SerializeField] private string _defeatSubtitle = "Your forces have been annihilated.";
+        [SerializeField] private string _defeatSubtitle;
         
-        [SerializeField] private Color  _defeatColor = new Color(0.75f, 0.1f, 0.1f);
-
-        [Header("Button Text")]
-        
-        [SerializeField] private string _buttonText = "Return to Menu";
+        [SerializeField] private Color  _defeatColor;
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            Instance = this;
-
-            if (_rootPanel != null)
-                _rootPanel.SetActive(false);
-
-            if (_mainButton != null)
-                _mainButton.onClick.AddListener(OnMainButtonClicked);
-
-            if (_buttonLabel != null)
-                _buttonLabel.text = _buttonText;
+            _mainButton.onClick.AddListener(OnExitGameButtonClicked);
         }
 
         private void OnDestroy()
         {
-            if (Instance == this)
-                Instance = null;
+            if (_mainButton == null)
+            {
+                return;
+            }
 
-            if (_mainButton != null)
-                _mainButton.onClick.RemoveListener(OnMainButtonClicked);
+            _mainButton.onClick.RemoveListener(OnExitGameButtonClicked);
         }
 
         public void Show(bool isVictory)
@@ -83,7 +64,7 @@ namespace UI.UIControllers
             }
             else
             {
-                SetText(_titleLabel,    _defeatTitle,    _defeatColor);
+                SetText(_titleLabel,    _defeatTitle, _defeatColor);
                 SetText(_subtitleLabel, _defeatSubtitle, Color.white);
             }
         }
@@ -95,7 +76,7 @@ namespace UI.UIControllers
             label.color = color;
         }
 
-        private void OnMainButtonClicked()
+        private void OnExitGameButtonClicked()
         {
             EntityQuery networkConnectionQuery =
                 World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(NetworkStreamConnection));

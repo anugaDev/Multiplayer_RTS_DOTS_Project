@@ -6,6 +6,7 @@ namespace UI.UIControllers
     public class UserInterfaceController : MonoBehaviour
     {
         public static UserInterfaceController Instance;
+
         [SerializeField]
         private SelectionBoxController _selectionBoxController;
 
@@ -22,6 +23,9 @@ namespace UI.UIControllers
         private SelectedGroupDisplayController _selectedGroupController;
 
         [SerializeField]
+        private GameOverScreenController _gameOverScreenController;
+
+        [SerializeField]
         private MinimapController _minimapController;
         
         [SerializeField]
@@ -35,9 +39,11 @@ namespace UI.UIControllers
 
         public ResourcesPanelController ResourcesPanelController => _resourcesPanelController;
 
+        public GameOverScreenController GameOverScreenController => _gameOverScreenController;
+        
         public SelectionBoxController SelectionBoxController => _selectionBoxController;
 
-private void Awake()
+        private void Awake()
         {
             if (Instance != null)
             {
