@@ -1973,6 +1973,71 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!1 &1929541177
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1929541178}
+  - component: {fileID: 1929541179}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1929541178
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929541177}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 335.5, y: 188.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1929541179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929541177}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c86a08ec2d5874c4f8b54c6e3b1215a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AudioClips:
+  - Id: 1
+    Clip: {fileID: 8300000, guid: 1f6ad9872fb520f4e95c994994e64e66, type: 3}
+  - Id: 2
+    Clip: {fileID: 8300000, guid: 5a9a06e1376675f4cab405699037c3e4, type: 3}
+  - Id: 3
+    Clip: {fileID: 8300000, guid: 6cbb8effde8207d44aedc67a27e85b3c, type: 3}
+  - Id: 4
+    Clip: {fileID: 8300000, guid: b25d656bc21343246b471f9f062c4ae8, type: 3}
+  - Id: 5
+    Clip: {fileID: 8300000, guid: 9b22e205ca7030e458e8fdb0927f1a28, type: 3}
+  - Id: 6
+    Clip: {fileID: 8300000, guid: 4570721bf9380324e9fbe86269ea562a, type: 3}
+  - Id: 7
+    Clip: {fileID: 8300000, guid: 11e18f84bd524fc4791e37fd509c32a3, type: 3}
+  - Id: 8
+    Clip: {fileID: 8300000, guid: 11e18f84bd524fc4791e37fd509c32a3, type: 3}
+  - Id: 9
+    Clip: {fileID: 8300000, guid: 2d39b8ae9cd694048818024134149307, type: 3}
+  PoolSize: 10
+  MasterVolume: 1
 --- !u!1 &2095090634
 GameObject:
   m_ObjectHideFlags: 0
@@ -2892,3 +2957,4 @@ SceneRoots:
   - {fileID: 106672946}
   - {fileID: 7431874424970534843}
   - {fileID: 1568917912}
+  - {fileID: 1929541178}
