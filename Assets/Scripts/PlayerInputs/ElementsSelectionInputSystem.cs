@@ -19,7 +19,11 @@ namespace PlayerInputs
         private const float CLICK_DISTANCE_THRESHOLD = 10f;
 
         private const float CLICK_TIME_THRESHOLD = 0.3f;
+        
+        private UserInterfaceController _sceneReferenceComponent;
 
+        private CheckGameplayInteractionPolicy _interactionPolicy;
+        
         private InputActions _inputActionMap;
 
         private Vector2 _startingPosition;
@@ -36,18 +40,18 @@ namespace PlayerInputs
 
         private bool _isDragging;
 
-private CheckGameplayInteractionPolicy _interactionPolicy;
-
         protected override void OnCreate()
         {
             _interactionPolicy = new CheckGameplayInteractionPolicy();
             _inputActionMap = new InputActions();
+            RequireForUpdate<UISceneReferenceComponent>();
             RequireForUpdate<OwnerTagComponent>();
             RequireForUpdate<NetworkTime>();
         }
 
         protected override void OnStartRunning()
         {
+            _sceneReferenceComponent = SystemAPI.ManagedAPI.GetSingleton<UISceneReferenceComponent>().UIReference;
             _inputActionMap.Enable();
             _inputActionMap.GameplayMap.SelectGameEntity.started += StartBoxSelection;
             _inputActionMap.GameplayMap.SelectGameEntity.canceled += EndSelectionBox;
@@ -87,7 +91,7 @@ private CheckGameplayInteractionPolicy _interactionPolicy;
                 return;
             }
 
-            UserInterfaceController.Instance.SelectionBoxController.Enable();
+            _sceneReferenceComponent.SelectionBoxController.Enable();
             _startingPosition = GetPointerPosition();
             _lastPosition = _startingPosition;
             _selectionStartTime = UnityEngine.Time.time;
@@ -102,14 +106,14 @@ private CheckGameplayInteractionPolicy _interactionPolicy;
 
             _mustKeepSelection = _inputActionMap.GameplayMap.KeepSelectionKey.IsPressed();
             _lastPosition = GetPointerPosition();
-            UserInterfaceController.Instance.SelectionBoxController.UpdateBoxSize(_startingPosition, _lastPosition);
+            _sceneReferenceComponent.SelectionBoxController.UpdateBoxSize(_startingPosition, _lastPosition);
         }
 
         private void EndSelectionBox(InputAction.CallbackContext _)
         {
             _isDragging = false;
             _lastPosition = GetPointerPosition();
-            UserInterfaceController.Instance.SelectionBoxController.Disable();
+            _sceneReferenceComponent.SelectionBoxController.Disable();
             if (!_interactionPolicy.IsAllowed())
             {
                 return;

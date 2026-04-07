@@ -1,4 +1,5 @@
 using Types;
+using UI;
 using UI.UIControllers;
 using Unity.Entities;
 
@@ -28,7 +29,8 @@ namespace Combat
                 {
                     bool isVictory = playerTeam.ValueRO.Team == gameOverTag.ValueRO.WinnerTeam;
 
-                    GameOverScreenController screenController = UserInterfaceController.Instance.GameOverScreenController;
+                    UISceneReferenceComponent sceneReferenceComponent = SystemAPI.ManagedAPI.GetSingleton<UISceneReferenceComponent>();
+                    GameOverScreenController screenController = sceneReferenceComponent.UIReference.GameOverScreenController;
                     if (screenController != null)
                     {
                         screenController.Show(isVictory);

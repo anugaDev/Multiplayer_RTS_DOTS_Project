@@ -23,11 +23,13 @@ namespace UI
         protected override void OnCreate()
         {
             RequireForUpdate<OwnerTagComponent>();
+            RequireForUpdate<UISceneReferenceComponent>();
         }
 
         protected override void OnStartRunning()
         {
-            _selectionDetailsController = UserInterfaceController.Instance.SelectedDetailsController;
+            UISceneReferenceComponent uiSceneReferenceComponent = SystemAPI.ManagedAPI.GetSingleton<UISceneReferenceComponent>();
+            _selectionDetailsController = uiSceneReferenceComponent.UIReference.SelectedDetailsController;
             base.OnStartRunning();
         }
 
@@ -43,8 +45,8 @@ namespace UI
                 SetTrackedEntityDetails();
                 entityCommandBuffer.RemoveComponent<SetUIDisplayDetailsComponent>(entity);
             }
-
-foreach ((SetEmptyDetailsComponent _, Entity entity) 
+            
+            foreach ((SetEmptyDetailsComponent _, Entity entity) 
                      in SystemAPI.Query<SetEmptyDetailsComponent>().WithEntityAccess())
             {
                 _selectionDetailsController.DisableDetails();

@@ -1,12 +1,11 @@
 ﻿using PlayerCamera;
+using Unity.Entities;
 using UnityEngine;
 
 namespace UI.UIControllers
 {
     public class UserInterfaceController : MonoBehaviour
     {
-        public static UserInterfaceController Instance;
-
         [SerializeField]
         private SelectionBoxController _selectionBoxController;
 
@@ -30,6 +29,11 @@ namespace UI.UIControllers
         
         [SerializeField]
         private CameraController _cameraController;
+        
+
+        private EntityManager _entityManager;
+        
+        private Entity _uiEntity;
 
         public SelectionActionsDisplayController SelectionActionsDisplayerController => _selectionActionsDisplayerController;
 
@@ -45,15 +49,19 @@ namespace UI.UIControllers
 
         private void Awake()
         {
-            if (Instance != null)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            Instance = this;
             _selectionBoxController.Disable();
             AddListeners();
+            AddUIReference();
+        }
+
+        private void AddUIReference()
+        {
+            _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            _uiEntity = _entityManager.CreateEntity();
+            _entityManager.AddComponentObject(_uiEntity, new UISceneReferenceComponent() 
+            { 
+                UIReference = this 
+            });
         }
 
         private void AddListeners()
@@ -67,6 +75,7 @@ namespace UI.UIControllers
         private void OnDestroy()
         {
             RemoveListeners();
+            RemoveSceneReference();
         }
 
         private void RemoveListeners()
@@ -75,6 +84,14 @@ namespace UI.UIControllers
             _cameraController.OnCameraZoomed -= _minimapController.UpdateCameraIndicatorSize;
             _minimapController.OnMinimapClicked -= _cameraController.SetCameraPosition;
             _minimapController.OnMinimapDragged -= _cameraController.SetCameraPosition;
+        }
+        
+        private void RemoveSceneReference()
+        {
+            if (World.DefaultGameObjectInjectionWorld != null && _entityManager.Exists(_uiEntity))
+            {
+                _entityManager.DestroyEntity(_uiEntity);
+            }
         }
     }
 }

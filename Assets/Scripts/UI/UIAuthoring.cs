@@ -1,10 +1,12 @@
+using UI.UIControllers;
 using Unity.Entities;
 using UnityEngine;
 
 namespace UI
 {
-    public class UIPrefabsAuthoring : MonoBehaviour
+    public class UIAuthoring : MonoBehaviour
     { 
+        
         [SerializeField] 
         private UnitUIController _unitUIPrefab;
 
@@ -15,20 +17,21 @@ namespace UI
         
         public GameObject ResourceUIPrefab => _resourceUIPrefab;
 
-        public class UnitPrefabBaker : Baker<UIPrefabsAuthoring>
+        public class UnitPrefabBaker : Baker<UIAuthoring>
         {
-            public override void Bake(UIPrefabsAuthoring prefabAuthoring)
+            public override void Bake(UIAuthoring authoring)
             {
+                Entity userInterfaceEntity = GetEntity(TransformUsageFlags.Dynamic);
                 Entity prefabContainerEntity = GetEntity(TransformUsageFlags.None);
-                AddComponentObject(prefabContainerEntity, GetUIPrefabs(prefabAuthoring));
+                AddComponentObject(prefabContainerEntity, GetUIPrefabs(authoring));
             }
 
-            private UIPrefabs GetUIPrefabs(UIPrefabsAuthoring prefabAuthoring)
+            private UIPrefabs GetUIPrefabs(UIAuthoring authoring)
             {
                 return new UIPrefabs
                 {
-                    UnitUI = prefabAuthoring.UnitUIPrefab,
-                    ResourceUI = prefabAuthoring.ResourceUIPrefab
+                    UnitUI = authoring.UnitUIPrefab,
+                    ResourceUI = authoring.ResourceUIPrefab
                 };
             }
         }

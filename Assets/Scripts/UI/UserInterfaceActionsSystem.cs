@@ -24,11 +24,13 @@ namespace UI
             RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             RequireForUpdate<BuildingsConfigurationComponent>();
             RequireForUpdate<UnitsConfigurationComponent>();
+            RequireForUpdate<UISceneReferenceComponent>();
         }
 
         protected override void OnStartRunning()
         {
-            _selectionActionsController = UserInterfaceController.Instance.SelectionActionsDisplayerController;
+            UISceneReferenceComponent uiSceneReferenceComponent = SystemAPI.ManagedAPI.GetSingleton<UISceneReferenceComponent>();
+            _selectionActionsController = uiSceneReferenceComponent.UIReference.SelectionActionsDisplayerController;
             _selectionActionsController.OnActionSelected += SetPlayerUIActionComponent;
             _selectionActionsController.OnActionEnter += SetActonPopUpEnabled;
             _selectionActionsController.OnActionExit += SetActionPopUpDisabled;

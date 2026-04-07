@@ -16,13 +16,15 @@ namespace UI
 
         protected override void OnCreate()
         {
+            RequireForUpdate<UISceneReferenceComponent>();
             RequireForUpdate<OwnerTagComponent>();
             base.OnCreate();
         }
 
         protected override void OnStartRunning()
         {
-            _resourcesPanelController = UserInterfaceController.Instance.ResourcesPanelController;
+            UISceneReferenceComponent uiSceneReferenceComponent = SystemAPI.ManagedAPI.GetSingleton<UISceneReferenceComponent>();
+            _resourcesPanelController = uiSceneReferenceComponent.UIReference.ResourcesPanelController;
             base.OnStartRunning();
         }
 

@@ -42,6 +42,7 @@ namespace UI
         protected override void OnCreate()
         {
             RequireForUpdate<UnitsConfigurationComponent>();
+            RequireForUpdate<UISceneReferenceComponent>();
             RequireForUpdate<OwnerTagComponent>();
             InitializeSelectionDictionary();
             InitializeActionDictionary();
@@ -140,8 +141,9 @@ namespace UI
 
         private void InitializeController()
         {
+            UISceneReferenceComponent uiSceneReferenceComponent = SystemAPI.ManagedAPI.GetSingleton<UISceneReferenceComponent>();
             UnitsScriptableObject configuration = SystemAPI.ManagedAPI.GetSingleton<UnitsConfigurationComponent>().Configuration;
-            _selectionGroupsController = UserInterfaceController.Instance.SelectedGroupController;
+            _selectionGroupsController = uiSceneReferenceComponent.UIReference.SelectedGroupController;
             _selectionGroupsController.SetUnitsGroups(configuration);
         }
 

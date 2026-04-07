@@ -80,7 +80,7 @@ namespace PlayerCamera
 
         private void SetCameraToOwnerTeam()
         {
-            if (!_teamControllerQuery.TryGetSingleton<ClientTeamRequest>(out ClientTeamRequest requestedTeam))
+            if (!_teamControllerQuery.TryGetSingleton(out ClientTeamRequest requestedTeam))
             {
                 return;
             }
