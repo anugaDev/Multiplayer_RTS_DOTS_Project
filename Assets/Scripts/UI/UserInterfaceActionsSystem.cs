@@ -1,3 +1,4 @@
+using Audio;
 using Buildings;
 using ElementCommons;
 using ScriptableObjects;
@@ -68,12 +69,24 @@ namespace UI
 
         private void SetPlayerUIActionComponent(SetPlayerUIActionComponent actionComponent)
         {
+            SetSelectionSoundFeedback();
             Entity uiEntity = SystemAPI.GetSingletonEntity<PlayerTagComponent>();
-
             if (!EntityManager.HasComponent<SetPlayerUIActionComponent>(uiEntity))
             {
                 EntityManager.AddComponentData(uiEntity, actionComponent);
             }
+        }
+
+        private void SetSelectionSoundFeedback()
+        {
+            Entity audioEntity = SystemAPI.ManagedAPI.GetSingletonEntity<AudioManagerReferenceComponent>();
+            AudioRequestComponent audioRequest = new AudioRequestComponent
+            {
+                AudioId = AudioSourceType.SelectedAction,
+                Is3D = false
+            };
+
+            EntityManager.SetComponentData(audioEntity, audioRequest);
         }
 
         protected override void OnStopRunning()

@@ -5,7 +5,7 @@ namespace Audio
 {
     public struct AudioRequestComponent : IComponentData
     {
-        public AudioSourceEnum AudioId;
+        public AudioSourceType AudioId;
 
         public float3 Position;
 

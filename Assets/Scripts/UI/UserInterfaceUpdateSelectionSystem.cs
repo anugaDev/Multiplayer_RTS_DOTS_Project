@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Audio;
 using Buildings;
 using ElementCommons;
 using Types;
@@ -191,9 +192,22 @@ namespace UI
                 return;
             }
 
+            SetSelectionSoundFeedback();
             Entity detailsEntity = GetDetailsEntity();
             _UIUpdateEntity = SystemAPI.GetSingletonEntity<PlayerTagComponent>();
             _entityCommandBuffer.AddComponent(_UIUpdateEntity, GetDetailsComponent(detailsEntity));
+        }
+
+        private void SetSelectionSoundFeedback()
+        {
+            Entity audioEntity = SystemAPI.ManagedAPI.GetSingletonEntity<AudioManagerReferenceComponent>();
+            AudioRequestComponent audioRequest = new AudioRequestComponent
+            {
+                AudioId = AudioSourceType.SelectedEntity,
+                Is3D = false
+            };
+
+            EntityManager.SetComponentData(audioEntity, audioRequest);
         }
 
         private void SendEmptyDetails()

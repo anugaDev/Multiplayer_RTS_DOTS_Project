@@ -6,7 +6,7 @@ namespace Audio
     [Serializable]
     public struct AudioEntry
     {
-        public AudioSourceEnum Id;
+        public AudioSourceType Id;
 
         public AudioClip Clip;
     }

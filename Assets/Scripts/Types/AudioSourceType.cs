@@ -1,12 +1,12 @@
 namespace Audio
 {
-    public enum AudioSourceEnum : byte
+    public enum AudioSourceType : byte
     {
         None = 0,
         SwordSwing,
         ArcherShot,
         DamageShout,
-        DeadShout,
+        DeathShout,
         DamageBuilding,
         DestroyedBuilding,
         SelectedEntity,

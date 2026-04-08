@@ -16,7 +16,7 @@ namespace Audio
         [Range(0f, 1f)]
         private float MasterVolume = 1f;
 
-        private Dictionary<AudioSourceEnum, AudioClip> _clipCache;
+        private Dictionary<AudioSourceType, AudioClip> _clipCache;
         
         private Queue<AudioSource> _audioSourcePool;
 
@@ -26,7 +26,7 @@ namespace Audio
 
         private void Awake()
         {
-            _clipCache = new Dictionary<AudioSourceEnum, AudioClip>();
+            _clipCache = new Dictionary<AudioSourceType, AudioClip>();
             if (AudioClips != null)
             {
                 foreach (AudioEntry entry in AudioClips)
@@ -88,7 +88,7 @@ namespace Audio
             _audioSourcePool.Enqueue(source);
         }
 
-        public void PlaySound(AudioSourceEnum id, Unity.Mathematics.float3 position, bool is3D)
+        public void PlaySound(AudioSourceType id, Unity.Mathematics.float3 position, bool is3D)
         {
             if (!_clipCache.TryGetValue(id, out AudioClip clip))
             {

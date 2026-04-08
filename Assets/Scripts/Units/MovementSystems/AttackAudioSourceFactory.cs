@@ -6,20 +6,20 @@ namespace Units.MovementSystems
 {
     public class AttackAudioSourceFactory
     {
-        private Dictionary<UnitType, AudioSourceEnum> _unitToAttackAudioDictionary;
+        private Dictionary<UnitType, AudioSourceType> _unitToAttackAudioDictionary;
 
         public AttackAudioSourceFactory()
         {
-            _unitToAttackAudioDictionary = new Dictionary<UnitType, AudioSourceEnum>
+            _unitToAttackAudioDictionary = new Dictionary<UnitType, AudioSourceType>
             {
-                [UnitType.Worker] = AudioSourceEnum.SwordSwing,
-                [UnitType.Warrior] = AudioSourceEnum.SwordSwing,
-                [UnitType.Archer] = AudioSourceEnum.ArcherShot,
-                [UnitType.Ballista] = AudioSourceEnum.ArcherShot
+                [UnitType.Worker] = AudioSourceType.SwordSwing,
+                [UnitType.Warrior] = AudioSourceType.SwordSwing,
+                [UnitType.Archer] = AudioSourceType.ArcherShot,
+                [UnitType.Ballista] = AudioSourceType.ArcherShot
             };
         }
 
-        public AudioSourceEnum Get(UnitType unitType)
+        public AudioSourceType Get(UnitType unitType)
         {
             return _unitToAttackAudioDictionary[unitType];
         }
