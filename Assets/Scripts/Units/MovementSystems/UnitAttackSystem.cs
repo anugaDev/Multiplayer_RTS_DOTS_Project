@@ -134,9 +134,8 @@ namespace Units.MovementSystems
             }
 
             _damageBufferLookup[target].Add(new DamageBufferElement { Value = tickDamage });
-            Entity audioEntity = SystemAPI.ManagedAPI.GetSingletonEntity<AudioManagerReferenceComponent>();
-
-            EntityManager.SetComponentData(audioEntity, GetAudioRequestComponent(unitEntity));
+            Entity audioRequestEntity = EntityManager.CreateEntity(typeof(AudioRequestComponent));
+            EntityManager.SetComponentData(audioRequestEntity, GetAudioRequestComponent(unitEntity));
         }
 
         private AudioRequestComponent GetAudioRequestComponent(Entity unitEntity)

@@ -81,14 +81,13 @@ namespace Combat
 
         private void SetDamagedSoundFeedback(AudioSourceType audioSourceType, float3 position, SystemState state)
         {
-            Entity audioEntity = SystemAPI.ManagedAPI.GetSingletonEntity<AudioManagerReferenceComponent>();
-            AudioRequestComponent audioRequest = new AudioRequestComponent
+            Entity audioRequestEntity = state.EntityManager.CreateEntity(typeof(AudioRequestComponent));
+            state.EntityManager.SetComponentData(audioRequestEntity, new AudioRequestComponent
             {
                 AudioId = audioSourceType,
+                Position = position,
                 Is3D = true
-            };
-
-            SystemAPI.SetComponent(audioEntity, audioRequest);
+            });
         }
     }
 }

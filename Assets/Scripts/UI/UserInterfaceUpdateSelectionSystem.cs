@@ -200,14 +200,12 @@ namespace UI
 
         private void SetSelectionSoundFeedback()
         {
-            Entity audioEntity = SystemAPI.ManagedAPI.GetSingletonEntity<AudioManagerReferenceComponent>();
-            AudioRequestComponent audioRequest = new AudioRequestComponent
+            Entity audioRequestEntity = EntityManager.CreateEntity(typeof(AudioRequestComponent));
+            EntityManager.SetComponentData(audioRequestEntity, new AudioRequestComponent
             {
                 AudioId = AudioSourceType.SelectedEntity,
                 Is3D = false
-            };
-
-            EntityManager.SetComponentData(audioEntity, audioRequest);
+            });
         }
 
         private void SendEmptyDetails()
